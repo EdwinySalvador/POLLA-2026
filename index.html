@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polla Mundial 2026 🏆</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        turf: {
+                            50: '#f2fdf5',
+                            100: '#e1fae9',
+                            200: '#c5f4d4',
+                            300: '#97e9b2',
+                            400: '#61d589',
+                            500: '#10b981', /* emerald-500 */
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            950: '#022c22',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; /* slate-900 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; /* slate-700 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981; /* turf-500 */
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans select-none overflow-x-hidden antialiased">
+
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 shrink-0 sticky top-0 z-40 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <!-- Brand & Clock -->
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-emerald-600 to-teal-500 p-2.5 rounded-xl shadow-lg ring-2 ring-emerald-400/20 animate-pulse">
+                    <span class="text-2xl leading-none">🏆</span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">
+                        Polla Mundial 2026
+                    </h1>
+                    <p class="text-xs text-slate-400 flex items-center gap-1.5 font-mono">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                        Hora de Colombia (UTC-5): <span id="live-clock">--:--:--</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Active User Display Selector -->
+            <div class="flex items-center gap-3 bg-slate-950/80 px-3 py-1.5 rounded-2xl border border-slate-850 shadow-inner">
+                <span class="text-xs text-slate-400 font-medium">Jugador:</span>
+                <select id="user-select" onchange="switchActiveUser(this.value)" class="bg-transparent text-sm font-semibold text-emerald-400 focus:outline-none cursor-pointer pr-2">
+                    <!-- Loaded dynamically -->
+                </select>
+                <div id="active-user-avatar" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-lg">
+                    👧
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- KEY STATS STRIP -->
+    <section class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-slate-850/80 shrink-0 text-xs sm:text-sm shadow-md py-2 px-4">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-center sm:justify-between gap-4 font-medium text-slate-300">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-400">Puesto Polla:</span>
+                    <span id="rank-badge" class="bg-emerald-500/10 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/20 select-none">#--</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-400">Mis Puntos:</span>
+                    <span id="user-points" class="font-extrabold text-white text-base text-emerald-400">0 pts</span>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-6">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullseye text-teal-400"></i>
+                    <span>Marcadores Exactos (5 pts): <strong id="exact-matches-count" class="text-emerald-400">0</strong></span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check text-indigo-400"></i>
+                    <span>Resultados Correctos (3 pts): <strong id="correct-outcomes-count" class="text-indigo-400">0</strong></span>
+                </div>
+            </div>
+            <div>
+                <button onclick="simulateAllUserPredictions()" class="text-xs bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-emerald-400"></i> Simular Pronósticos Familiares
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN APP LAYOUT (Sidebar & Pane) -->
+    <main class="flex-1 overflow-hidden flex flex-col md:flex-row max-w-7xl w-full mx-auto p-3 sm:p-4 gap-4">
+        
+        <!-- SIDEBAR - LEADERBOARD (STICKY AT TOP ON MOBILE, COLUMN ON DESKTOP) -->
+        <aside class="w-full md:w-80 shrink-0 flex flex-col gap-3 bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl overflow-hidden max-h-[30rem] md:max-h-none">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h2 class="font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-ranking-star text-yellow-400"></i> Posiciones de la Polla
+                </h2>
+                <button onclick="openAddUserModal()" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold transition-all">
+                    <i class="fa-solid fa-plus"></i> Jugador
+                </button>
+            </div>
+
+            <div id="leaderboard-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                <!-- Loaded dynamically -->
+            </div>
+            
+            <div class="pt-2 border-t border-slate-800 flex flex-col gap-1.5">
+                <button onclick="openSyncModal()" class="w-full bg-slate-950 hover:bg-slate-850 hover:text-white border border-slate-800 text-slate-300 text-2xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-arrows-rotate text-emerald-400"></i> Sincronizar con Familia
+                </button>
+            </div>
+            
+            <div class="text-2xs text-slate-500 font-mono text-center pt-1">
+                Puntajes se actualizan en vivo al guardar resultados oficiales
+            </div>
+        </aside>
+
+        <!-- VIEW WRAPPER (TABS & CORE VIEWPORTS) -->
+        <div class="flex-1 flex flex-col bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+            <!-- TAB BAR -->
+            <nav class="bg-slate-900/40 border-b border-slate-800 flex items-center justify-start p-2 gap-1 overflow-x-auto select-none shrink-0 scrollbar-none">
+                <button id="tab-fixture" onclick="switchTab('fixture')" class="px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all duration-350 shrink-0 flex items-center gap-2 text-white bg-emerald-600/30 border border-emerald-500/20 text-emerald-400">
+                    <i class="fa-regular fa-calendar-days text-sm"></i> Fixture y Pronósticos
+                </button>
+                <button id="tab-standings" onclick="switchTab('standings')" class="px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all duration-350 shrink-0 flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-table-list text-sm"></i> Tablas de Grupos
+                </button>
+                <button id="tab-specials" onclick="switchTab('specials')" class="px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all duration-350 shrink-0 flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-star text-sm"></i> Adicionales Especiales
+                </button>
+                <button id="tab-admin" onclick="switchTab('admin')" class="px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all duration-350 shrink-0 flex items-center gap-2 text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-user-gear text-sm"></i> Administrador
+                </button>
+            </nav>
+
+            <!-- TAB 1: FIXTURE CONTENT -->
+            <div id="view-fixture" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                <!-- Search and Filtering -->
+                <div class="bg-slate-950/40 border border-slate-800/80 p-3 sm:p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shrink-0 shadow-inner">
+                    <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+                        <select id="filter-group" onchange="renderFixture()" class="bg-slate-900 border border-slate-800 text-xs sm:text-sm rounded-xl px-3 py-2 text-slate-200 focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer">
+                            <option value="Todos">Todos los Grupos</option>
+                            <option value="Grupo A">Grupo A</option>
+                            <option value="Grupo B">Grupo B</option>
+                            <option value="Grupo C">Grupo C</option>
+                            <option value="Grupo D">Grupo D</option>
+                            <option value="Grupo E">Grupo E</option>
+                            <option value="Grupo F">Grupo F</option>
+                            <option value="Grupo G">Grupo G</option>
+                            <option value="Grupo H">Grupo H</option>
+                            <option value="Grupo I">Grupo I</option>
+                            <option value="Grupo J">Grupo J</option>
+                            <option value="Grupo K">Grupo K</option>
+                            <option value="Grupo L">Grupo L</option>
+                        </select>
+                        <select id="filter-date" onchange="renderFixture()" class="bg-slate-900 border border-slate-800 text-xs sm:text-sm rounded-xl px-3 py-2 text-slate-200 focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer">
+                            <option value="Todos">Todas las Fechas</option>
+                            <option value="2026-06-11">Jueves 11 de Junio</option>
+                            <option value="2026-06-12">Viernes 12 de Junio</option>
+                            <option value="2026-06-13">Sábado 13 de Junio</option>
+                            <option value="2026-06-14">Domingo 14 de Junio</option>
+                            <option value="2026-06-15">Lunes 15 de Junio</option>
+                            <option value="2026-06-16">Martes 16 de Junio</option>
+                            <option value="2026-06-17">Miércoles 17 de Junio</option>
+                            <option value="2026-06-18">Jueves 18 de Junio</option>
+                            <option value="2026-06-19">Viernes 19 de Junio</option>
+                            <option value="2026-06-20">Sábado 20 de Junio</option>
+                            <option value="2026-06-21">Domingo 21 de Junio</option>
+                            <option value="2026-06-22">Lunes 22 de Junio</option>
+                            <option value="2026-06-23">Martes 23 de Junio</option>
+                            <option value="2026-06-24">Miércoles 24 de Junio</option>
+                            <option value="2026-06-25">Jueves 25 de Junio</option>
+                            <option value="2026-06-26">Viernes 26 de Junio</option>
+                            <option value="2026-06-27">Sábado 27 de Junio</option>
+                        </select>
+                        <select id="filter-status" onchange="renderFixture()" class="bg-slate-900 border border-slate-800 text-xs sm:text-sm rounded-xl px-3 py-2 text-slate-200 focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer">
+                            <option value="Todos">Todos los Estados</option>
+                            <option value="Pendiente">Sin Pronosticar</option>
+                            <option value="Pronosticado">Pronosticados</option>
+                        </select>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="relative w-full md:w-60">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input id="search-country" oninput="renderFixture()" type="text" placeholder="Buscar país..." class="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 pl-9 pr-4 text-xs font-medium focus:ring-1 focus:ring-emerald-500 focus:outline-none placeholder-slate-550 text-slate-200">
+                    </div>
+                </div>
+
+                <!-- Match Feed Container -->
+                <div id="fixture-feed" class="flex-1 space-y-4">
+                    <!-- Cards injection -->
+                </div>
+            </div>
+
+            <!-- TAB 2: STANDINGS CONTENT -->
+            <div id="view-standings" class="flex-1 overflow-y-auto p-4 space-y-4 hidden">
+                <div class="bg-slate-950/40 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-inner">
+                    <div>
+                        <h3 class="font-bold text-slate-100 text-sm">Cálculo de Tablas de Grupos</h3>
+                        <p class="text-xs text-slate-400">Visualiza de qué manera tus pronósticos mueven las posiciones del campeonato.</p>
+                    </div>
+                    <div class="bg-slate-900 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
+                        <button id="btn-st-pred" onclick="switchStandingsBasis('pred')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Mis Predicciones
+                        </button>
+                        <button id="btn-st-off" onclick="switchStandingsBasis('off')" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+                            Resultados Oficiales
+                        </button>
+                    </div>
+                </div>
+
+                <div id="standings-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    <!-- Standings tables injected mathematically -->
+                </div>
+            </div>
+
+            <!-- TAB 3: SPECIALS CONTENT -->
+            <div id="view-specials" class="flex-1 overflow-y-auto p-4 space-y-5 hidden">
+                <div class="bg-slate-950/40 p-4 rounded-2xl border border-slate-800 shadow-inner">
+                    <h3 class="font-bold text-slate-100 text-sm">Pronósticos Especiales Adicionales (+10 pts c/u)</h3>
+                    <p class="text-xs text-slate-400">Guarda tus elecciones finales. Si coinciden con la decisión oficial de la administración, sumarás puntos vitales para ganar la polla familiar.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- SPECIAL CARDS -->
+                    <div class="bg-slate-950/20 border border-slate-800/70 p-4 rounded-2xl flex flex-col gap-3">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            🏁 Podio de Honor
+                        </h4>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Campeón del Mundo 🥇</label>
+                                <select id="spec-champion" onchange="saveSpecialPrediction('predictedChampion', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-champ-status" class="block text-2xs mt-1"></span>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Subcampeón del Mundo 🥈</label>
+                                <select id="spec-subchampion" onchange="saveSpecialPrediction('predictedSubchampion', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-sub-status" class="block text-2xs mt-1"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Tercer Lugar 🥉</label>
+                                <select id="spec-thirdPlace" onchange="saveSpecialPrediction('predictedThirdPlace', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-third-status" class="block text-2xs mt-1"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/20 border border-slate-800/70 p-4 rounded-2xl flex flex-col gap-3">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            🎖️ Premios Individuales
+                        </h4>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Goleador del Campeonato (Bota de Oro) ⚽</label>
+                                <select id="spec-goleador" onchange="saveSpecialPrediction('predictedGoleador', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-gol-status" class="block text-2xs mt-1"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Máximo Asistente 👟</label>
+                                <select id="spec-asistente" onchange="saveSpecialPrediction('predictedAsistente', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-asis-status" class="block text-2xs mt-1"></span>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">MVP de la Copa 🌟</label>
+                                <select id="spec-mvp" onchange="saveSpecialPrediction('predictedMvp', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-mvp-status" class="block text-2xs mt-1"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/20 border border-slate-800/70 p-4 rounded-2xl flex flex-col gap-3 md:col-span-2">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                            🧤 Guante de Oro y Defensa
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Mejor Portero de la Copa</label>
+                                <select id="spec-portero" onchange="saveSpecialPrediction('predictedPortero', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-port-status" class="block text-2xs mt-1"></span>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Equipo con Valla Menos Vencida</label>
+                                <select id="spec-vallaMenosVencida" onchange="saveSpecialPrediction('predictedVallaMenosVencida', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-sm text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"></select>
+                                <span id="off-valla-status" class="block text-2xs mt-1"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: ADMIN CONTENT -->
+            <div id="view-admin" class="flex-1 overflow-y-auto p-4 space-y-4 hidden">
+                <div id="admin-auth" class="max-w-md mx-auto py-10 text-center flex flex-col items-center gap-4">
+                    <div class="bg-slate-950/40 p-6 rounded-3xl border border-slate-850 shadow-2xl w-full">
+                        <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mx-auto mb-4">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-base mb-1">Autenticación Administrador</h3>
+                        <p class="text-xs text-slate-400 mb-6">Ingresa el PIN de acceso oficial para modificar resultados en tiempo real.</p>
+                        
+                        <div class="flex items-center justify-center gap-2 mb-6">
+                            <input type="password" id="admin-pin-input" maxlength="4" placeholder="••••" class="bg-slate-900 border border-slate-800 rounded-xl py-3 text-center text-xl font-bold tracking-widest w-28 text-white focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                            <button onclick="verifyAdminPIN()" class="bg-emerald-600 hover:bg-emerald-550 text-white font-semibold text-sm px-5 py-3 rounded-xl transition-all">
+                                Ingresar
+                            </button>
+                        </div>
+                        <span class="text-2xs text-slate-500 block font-mono">PIN por defecto: 1234</span>
+                    </div>
+                </div>
+
+                <!-- ADMIN CONTROL ACTIONS (VISIBLE AFTER SUCCESSFUL LOGIN) -->
+                <div id="admin-panel" class="hidden space-y-4">
+                    <div class="bg-slate-950/40 border border-emerald-500/10 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-inner">
+                        <div>
+                            <h3 class="font-bold text-emerald-400 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-screwdriver-wrench"></i> Administración de Polla Familiar
+                            </h3>
+                            <p class="text-xs text-slate-400">Ingresa los marcadores oficiales y premia de inmediato a los ganadores exactos.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="loadSampleOfficialScores()" class="bg-slate-800 hover:bg-slate-750 text-xs text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 font-medium">
+                                <i class="fa-solid fa-play text-emerald-400"></i> Simular Fecha 1 Oficial
+                            </button>
+                            <button onclick="resetOfficialScores()" class="bg-red-500/10 hover:bg-red-550/20 text-xs text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 font-medium">
+                                <i class="fa-regular fa-trash-can"></i> Limpiar Oficiales
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SPECIALS AWARDS ADMIN -->
+                    <div class="bg-slate-950/20 border border-slate-800/80 p-4 rounded-3xl space-y-3">
+                        <h4 class="font-bold text-xs text-slate-300 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-800">
+                            🚩 Certificación de Premiaciones Especiales Oficiales
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">Campeón Oficial</label>
+                                <select id="adm-champion" onchange="saveOfficialSpecial('champion', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">Subcampeón Oficial</label>
+                                <select id="adm-subchampion" onchange="saveOfficialSpecial('subchampion', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">Tercer puesto Oficial</label>
+                                <select id="adm-thirdPlace" onchange="saveOfficialSpecial('thirdPlace', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">Goleador Oficial</label>
+                                <select id="adm-goleador" onchange="saveOfficialSpecial('goleador', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">Asistente Oficial</label>
+                                <select id="adm-asistente" onchange="saveOfficialSpecial('asistente', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">MVP Oficial</label>
+                                <select id="adm-mvp" onchange="saveOfficialSpecial('mvp', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">Portero Oficial</label>
+                                <select id="adm-portero" onchange="saveOfficialSpecial('portero', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-400 mb-1">Valla menos vencida</label>
+                                <select id="adm-vallaMenosVencida" onchange="saveOfficialSpecial('vallaMenosVencida', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 text-slate-200 outline-none"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MATCH RESULTS ADMIN GRID -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between pb-1 border-b border-slate-800">
+                            <h4 class="font-bold text-xs text-slate-350 uppercase tracking-wider flex items-center gap-1.5">
+                                ⚽ Cargar Marcadores Oficiales de los 72 partidos
+                            </h4>
+                            <span class="text-2xs text-slate-500 font-mono">Autoguardado activado</span>
+                        </div>
+                        <div id="admin-matches-list" class="space-y-2 max-h-[30rem] overflow-y-auto pr-1">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- USER MODAL (BREAKDOWN & DETAILS) -->
+    <div id="breakdown-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl relative">
+            <button onclick="closeBreakdownModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+                <div id="bd-avatar" class="text-3xl">👧</div>
+                <div>
+                    <h3 id="bd-username" class="font-bold text-lg text-white">Nombre</h3>
+                    <p class="text-xs text-emerald-400 font-medium">Análisis detallado de puntajes</p>
+                </div>
+            </div>
+            <!-- Details container -->
+            <div class="flex-1 overflow-y-auto py-4 space-y-4 text-xs sm:text-sm">
+                <!-- Breakdown statistics widgets -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80 text-center shadow">
+                        <span class="text-slate-400 block text-2xs uppercase font-semibold">PUNTOS</span>
+                        <strong id="bd-total-pts" class="text-emerald-400 text-lg sm:text-xl">0 pts</strong>
+                    </div>
+                    <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80 text-center shadow">
+                        <span class="text-slate-400 block text-2xs uppercase font-semibold">PARTIDOS</span>
+                        <strong id="bd-match-pts" class="text-indigo-400 text-lg sm:text-xl">0 pts</strong>
+                    </div>
+                    <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80 text-center shadow">
+                        <span class="text-slate-400 block text-2xs uppercase font-semibold">ESPECIALES</span>
+                        <strong id="bd-special-pts" class="text-yellow-400 text-lg sm:text-xl">0 pts</strong>
+                    </div>
+                    <div class="bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80 text-center shadow">
+                        <span class="text-slate-400 block text-2xs uppercase font-semibold">EFICIENCIA</span>
+                        <strong id="bd-accuracy" class="text-teal-400 text-lg sm:text-xl">0%</strong>
+                    </div>
+                </div>
+
+                <!-- SPECIAL ADDS LIST BREAKDOWN -->
+                <div class="bg-slate-950/20 border border-slate-800/50 p-3.5 rounded-2xl">
+                    <h4 class="font-bold text-xs uppercase tracking-widest text-slate-400 mb-2.5 flex items-center gap-1">
+                        ✨ Aciertos en Pronósticos Especiales (+10 pts c/u)
+                    </h4>
+                    <div id="bd-specials-breakdown" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-2xs sm:text-xs">
+                        <!-- Injected -->
+                    </div>
+                </div>
+
+                <!-- DETAILED SCORES LIST -->
+                <div class="space-y-2">
+                    <h4 class="font-bold text-xs uppercase tracking-widest text-slate-400 flex items-center gap-1.5 pb-1 border-b border-slate-800">
+                        🏃 Historial de Partidos Jugados y Puntuados
+                    </h4>
+                    <div id="bd-matches-feed" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        <!-- Injected matches breakdowns -->
+                    </div>
+                </div>
+            </div>
+            <!-- Close -->
+            <div class="pt-3 border-t border-slate-800 flex justify-end">
+                <button onclick="closeBreakdownModal()" class="bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs px-4 py-2 rounded-xl transition-all">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD USER MODAL -->
+    <div id="adduser-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-sm w-full shadow-2xl relative">
+            <button onclick="closeAddUserModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-100 mb-1 text-sm">Registrar Nuevo Jugador</h3>
+            <p class="text-2xs text-slate-450 mb-4">Añade un nuevo participante a la polla familiar de fútbol.</p>
+            
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-medium text-slate-350 mb-1">Nombre Completo</label>
+                    <input type="text" id="new-user-name" placeholder="Ej: Edwin Jr" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white placeholder-slate-600 focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-medium text-slate-350 mb-1">Avatar Emoji</label>
+                    <div class="grid grid-cols-6 gap-2 text-lg">
+                        <button onclick="selectNewUserAvatar('👧', this)" class="avatar-select-btn p-1.5 rounded-xl border border-emerald-500 bg-emerald-500/10">👧</button>
+                        <button onclick="selectNewUserAvatar('👦', this)" class="avatar-select-btn p-1.5 rounded-xl border border-slate-800 hover:border-slate-700">👦</button>
+                        <button onclick="selectNewUserAvatar('👨', this)" class="avatar-select-btn p-1.5 rounded-xl border border-slate-800 hover:border-slate-700">👨</button>
+                        <button onclick="selectNewUserAvatar('👩', this)" class="avatar-select-btn p-1.5 rounded-xl border border-slate-800 hover:border-slate-700">👩</button>
+                        <button onclick="selectNewUserAvatar('👵', this)" class="avatar-select-btn p-1.5 rounded-xl border border-slate-800 hover:border-slate-700">👵</button>
+                        <button onclick="selectNewUserAvatar('👴', this)" class="avatar-select-btn p-1.5 rounded-xl border border-slate-800 hover:border-slate-700">👴</button>
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2 justify-end">
+                    <button onclick="closeAddUserModal()" class="bg-slate-850 hover:bg-slate-800 text-slate-300 font-semibold px-4 py-2 rounded-xl transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="saveNewUser()" class="bg-emerald-600 hover:bg-emerald-550 text-white font-semibold px-4 py-2 rounded-xl transition-all">
+                        Registrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SYNC FAMILY DATA MODAL -->
+    <div id="sync-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-md w-full shadow-2xl relative">
+            <button onclick="closeSyncModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-slate-100 mb-1 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-arrows-rotate text-emerald-400"></i> Sincronización Familiar
+            </h3>
+            <p class="text-2xs text-slate-400 mb-4">Como cada dispositivo guarda sus propios datos localmente, puedes usar esta herramienta para compartir o unificar las predicciones del grupo familiar de Edwin sin usar internet.</p>
+            
+            <div class="space-y-4 text-xs">
+                <!-- EXPORT SECTION -->
+                <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800">
+                    <h4 class="font-bold text-slate-200 mb-1 flex items-center gap-1">
+                        <span class="text-emerald-400">1.</span> Exportar mis Datos (Enviar por WhatsApp)
+                    </h4>
+                    <p class="text-2xs text-slate-450 mb-2">Genera un código con todos tus jugadores, predicciones e ingresos para enviarlo a tu familia.</p>
+                    <button onclick="generateAndCopySyncCode()" class="w-full bg-emerald-600 hover:bg-emerald-550 text-white font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-regular fa-copy"></i> Copiar Código para WhatsApp
+                    </button>
+                </div>
+
+                <!-- IMPORT SECTION -->
+                <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800">
+                    <h4 class="font-bold text-slate-200 mb-1 flex items-center gap-1">
+                        <span class="text-indigo-400">2.</span> Importar Datos de Familiar
+                    </h4>
+                    <p class="text-2xs text-slate-450 mb-2">Pega el código que te enviaron por WhatsApp para actualizar tu listado familiar.</p>
+                    <textarea id="import-code-area" placeholder="Pega el código largo aquí..." class="w-full h-20 bg-slate-950 text-slate-300 font-mono text-3xs border border-slate-800 rounded-xl p-2 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-none mb-2"></textarea>
+                    <button onclick="importSyncCode()" class="w-full bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-file-import"></i> Cargar y Sincronizar
+                    </button>
+                </div>
+
+                <div class="flex gap-2 justify-end pt-2">
+                    <button onclick="closeSyncModal()" class="bg-slate-850 hover:bg-slate-800 text-slate-300 font-semibold px-4 py-2 rounded-xl transition-all">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING TOASTER/NOTIFIER -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-emerald-600/90 border border-emerald-400/20 text-white text-xs font-semibold py-2.5 px-4 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-none z-50 select-none">
+        <i class="fa-solid fa-circle-check text-white text-sm"></i>
+        <span id="toast-msg">Guardado correctamente</span>
+    </div>
+
+    <!-- CORE DATA SEED & ENGINE SCRIPTS -->
+    <script>
+        // Compact 72 matches definition: [id, team1, team2, date, groupCode, stadium]
+        const RAW_MATCHES = [
+            [1, "México", "Sudáfrica", "2026-06-11 14:00", "Grupo A", "Estadio Ciudad de México"],
+            [2, "Corea del Sur", "República Checa", "2026-06-11 21:00", "Grupo A", "Estadio Guadalajara"],
+            [3, "Canadá", "Bosnia y Herzegovina", "2026-06-12 14:00", "Grupo B", "Estadio Toronto"],
+            [4, "Estados Unidos", "Paraguay", "2026-06-12 20:00", "Grupo D", "Estadio Los Ángeles"],
+            [5, "Catar", "Suiza", "2026-06-13 14:00", "Grupo B", "Estadio Bahía de San Francisco"],
+            [6, "Brasil", "Marruecos", "2026-06-13 17:00", "Grupo C", "Estadio Nueva York Nueva Jersey"],
+            [7, "Haití", "Escocia", "2026-06-13 20:00", "Grupo C", "Estadio Boston"],
+            [8, "Australia", "Turquía", "2026-06-13 23:00", "Grupo D", "Estadio BC Place Vancouver"],
+            [9, "Alemania", "Curazao", "2026-06-14 12:00", "Grupo E", "Estadio Houston"],
+            [10, "Países Bajos", "Japón", "2026-06-14 15:00", "Grupo F", "Estadio Dallas"],
+            [11, "Costa de Marfil", "Ecuador", "2026-06-14 18:00", "Grupo E", "Estadio Filadelfia"],
+            [12, "Suecia", "Túnez", "2026-06-14 21:00", "Grupo F", "Estadio Monterrey"],
+            [13, "España", "Cabo Verde", "2026-06-15 11:00", "Grupo H", "Estadio Atlanta"],
+            [14, "Bélgica", "Egipto", "2026-06-15 14:00", "Grupo G", "Estadio Seattle"],
+            [15, "Arabia Saudita", "Uruguay", "2026-06-15 17:00", "Grupo H", "Estadio Miami"],
+            [16, "Irán", "Nueva Zelanda", "2026-06-15 20:00", "Grupo G", "Estadio Los Ángeles"],
+            [17, "Francia", "Senegal", "2026-06-16 14:00", "Grupo I", "Estadio Nueva York Nueva Jersey"],
+            [18, "Irak", "Noruega", "2026-06-16 17:00", "Grupo I", "Estadio Boston"],
+            [19, "Argentina", "Argelia", "2026-06-16 20:00", "Grupo J", "Estadio Kansas City"],
+            [20, "Austria", "Jordania", "2026-06-16 23:00", "Grupo J", "Estadio Bahía de San Francisco"],
+            [21, "Portugal", "RD Congo", "2026-06-17 12:00", "Grupo K", "Estadio Houston"],
+            [22, "Inglaterra", "Croacia", "2026-06-17 15:00", "Grupo L", "Estadio Dallas"],
+            [23, "Ghana", "Panamá", "2026-06-17 18:00", "Grupo L", "Estadio Toronto"],
+            [24, "Uzbekistán", "Colombia", "2026-06-17 21:00", "Grupo K", "Estadio Ciudad de México"],
+            [25, "República Checa", "Sudáfrica", "2026-06-18 11:00", "Grupo A", "Estadio Atlanta"],
+            [26, "Suiza", "Bosnia y Herzegovina", "2026-06-18 14:00", "Grupo B", "Estadio Los Ángeles"],
+            [27, "Canadá", "Catar", "2026-06-18 17:00", "Grupo B", "Estadio BC Place Vancouver"],
+            [28, "México", "Corea del Sur", "2026-06-18 20:00", "Grupo A", "Estadio Guadalajara"],
+            [29, "Estados Unidos", "Australia", "2026-06-19 14:00", "Grupo D", "Estadio Seattle"],
+            [30, "Escocia", "Marruecos", "2026-06-19 17:00", "Grupo C", "Estadio Boston"],
+            [31, "Brasil", "Haití", "2026-06-19 20:00", "Grupo C", "Estadio Filadelfia"],
+            [32, "Turquía", "Paraguay", "2026-06-19 23:00", "Grupo D", "Estadio Bahía de San Francisco"],
+            [33, "Países Bajos", "Suecia", "2026-06-20 12:00", "Grupo F", "Estadio Houston"],
+            [34, "Alemania", "Costa de Marfil", "2026-06-20 15:00", "Grupo E", "Estadio Toronto"],
+            [35, "Ecuador", "Curazao", "2026-06-20 21:00", "Grupo E", "Estadio Kansas City"],
+            [36, "Túnez", "Japón", "2026-06-20 23:00", "Grupo F", "Estadio Monterrey"],
+            [37, "España", "Arabia Saudita", "2026-06-21 11:00", "Grupo H", "Estadio Atlanta"],
+            [38, "Bélgica", "Irán", "2026-06-21 14:00", "Grupo G", "Estadio Los Ángeles"],
+            [39, "Uruguay", "Cabo Verde", "2026-06-21 17:00", "Grupo H", "Estadio Miami"],
+            [40, "Nueva Zelanda", "Egipto", "2026-06-21 20:00", "Grupo G", "Estadio BC Place Vancouver"],
+            [41, "Argentina", "Austria", "2026-06-22 12:00", "Grupo J", "Estadio Dallas"],
+            [42, "Francia", "Irak", "2026-06-22 16:00", "Grupo I", "Estadio Filadelfia"],
+            [43, "Noruega", "Senegal", "2026-06-22 19:00", "Grupo I", "Estadio Nueva York Nueva Jersey"],
+            [44, "Jordania", "Argelia", "2026-06-22 22:00", "Grupo J", "Estadio Bahía de San Francisco"],
+            [45, "Portugal", "Uzbekistán", "2026-06-23 12:00", "Grupo K", "Estadio Houston"],
+            [46, "Inglaterra", "Ghana", "2026-06-23 15:00", "Grupo L", "Estadio Boston"],
+            [47, "Panamá", "Croacia", "2026-06-23 18:00", "Grupo L", "Estadio Toronto"],
+            [48, "Colombia", "RD Congo", "2026-06-23 21:00", "Grupo K", "Estadio Guadalajara"],
+            [49, "Suiza", "Canadá", "2026-06-24 14:00", "Grupo B", "Estadio BC Place Vancouver"],
+            [50, "Bosnia y Herzegovina", "Catar", "2026-06-24 14:00", "Grupo B", "Estadio Seattle"],
+            [51, "Escocia", "Brasil", "2026-06-24 17:00", "Grupo C", "Estadio Miami"],
+            [52, "Marruecos", "Haití", "2026-06-24 17:00", "Grupo C", "Estadio Atlanta"],
+            [53, "República Checa", "México", "2026-06-24 20:00", "Grupo A", "Estadio Ciudad de México"],
+            [54, "Sudáfrica", "Corea del Sur", "2026-06-24 20:00", "Grupo A", "Estadio Monterrey"],
+            [55, "Curazao", "Costa de Marfil", "2026-06-25 15:00", "Grupo E", "Estadio Filadelfia"],
+            [56, "Ecuador", "Alemania", "2026-06-25 15:00", "Grupo E", "Estadio Nueva York Nueva Jersey"],
+            [57, "Japón", "Suecia", "2026-06-25 18:00", "Grupo F", "Estadio Dallas"],
+            [58, "Túnez", "Países Bajos", "2026-06-25 18:00", "Grupo F", "Estadio Kansas City"],
+            [59, "Turquía", "Estados Unidos", "2026-06-25 21:00", "Grupo D", "Estadio Los Ángeles"],
+            [60, "Paraguay", "Australia", "2026-06-25 21:00", "Grupo D", "Estadio Bahía de San Francisco"],
+            [61, "Noruega", "Francia", "2026-06-26 14:00", "Grupo I", "Estadio Boston"],
+            [62, "Senegal", "Irak", "2026-06-26 14:00", "Grupo I", "Estadio Toronto"],
+            [63, "Cabo Verde", "Arabia Saudita", "2026-06-26 19:00", "Grupo H", "Estadio Houston"],
+            [64, "Uruguay", "España", "2026-06-26 19:00", "Grupo H", "Estadio Guadalajara"],
+            [65, "Egipto", "Irán", "2026-06-26 22:00", "Grupo G", "Estadio Seattle"],
+            [66, "Nueva Zelanda", "Bélgica", "2026-06-26 22:00", "Grupo G", "Estadio BC Place Vancouver"],
+            [67, "Panamá", "Inglaterra", "2026-06-27 16:00", "Grupo L", "Estadio Nueva York Nueva Jersey"],
+            [68, "Croacia", "Ghana", "2026-06-27 16:00", "Grupo L", "Estadio Filadelfia"],
+            [69, "Colombia", "Portugal", "2026-06-27 18:30", "Grupo K", "Estadio Miami"],
+            [70, "RD Congo", "Uzbekistán", "2026-06-27 18:30", "Grupo K", "Estadio Atlanta"],
+            [71, "Argelia", "Austria", "2026-06-27 21:00", "Grupo J", "Estadio Kansas City"],
+            [72, "Jordania", "Argentina", "2026-06-27 21:00", "Grupo J", "Estadio Dallas"]
+        ];
+
+        const flagMapping = {
+            "México": "🇲🇽", "Sudáfrica": "🇿🇦", "Corea del Sur": "🇰🇷", "República Checa": "🇨🇿",
+            "Canadá": "🇨🇦", "Bosnia y Herzegovina": "🇧🇦", "Catar": "🇶🇦", "Suiza": "🇨🇭",
+            "Brasil": "🇧🇷", "Marruecos": "🇲🇦", "Haití": "🇭🇹", "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+            "Estados Unidos": "🇺🇸", "Paraguay": "🇵🇾", "Australia": "🇦🇺", "Turquía": "🇹🇷",
+            "Alemania": "🇩🇪", "Curazao": "🇨🇼", "Costa de Marfil": "🇨🇮", "Ecuador": "🇪🇨",
+            "Países Bajos": "🇳🇱", "Japón": "🇯🇵", "Suecia": "🇸🇪", "Túnez": "🇹🇳",
+            "Bélgica": "🇧🇪", "Egipto": "🇪🇬", "Irán": "🇮🇷", "Nueva Zelanda": "🇳🇿",
+            "España": "🇪🇸", "Cabo Verde": "🇨🇻", "Arabia Saudita": "🇸🇦", "Uruguay": "🇺🇾",
+            "Francia": "🇫🇷", "Senegal": "🇸🇳", "Irak": "🇮🇶", "Noruega": "🇳🇴",
+            "Argentina": "🇦🇷", "Argelia": "🇩🇿", "Austria": "🇦🇹", "Jordania": "🇯🇴",
+            "Portugal": "🇵🇹", "RD Congo": "🇨🇩", "Uzbekistán": "🇺🇿", "Colombia": "🇨🇴",
+            "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croacia": "🇭🇷", "Ghana": "🇬🇭", "Panamá": "🇵🇦"
+        };
+
+        const starPlayers = [
+            "Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappé", "Erling Haaland", "Jude Bellingham", "Vinícius Júnior", "Lamine Yamal",
+            "Mohamed Salah", "Kevin De Bruyne", "Harry Kane", "Robert Lewandowski", "Luis Díaz", "James Rodríguez", "Ederson", "Alisson", "Thibaut Courtois",
+            "Emiliano Martínez", "Manuel Neuer", "Marc-André ter Stegen", "Antoine Griezmann", "Bruno Fernandes", "Bukayo Saka", "Federico Valverde"
+        ].sort();
+
+        // Application State
+        let users = [];
+        let matches = [];
+        let predictions = {}; // Key: "userId_matchId", Value: {goals1: x, goals2: y}
+        let officialSpecials = { champion: "", subchampion: "", thirdPlace: "", goleador: "", asistente: "", mvp: "", portero: "", vallaMenosVencida: "" };
+        let activeUserId = 1;
+        let standingsBasis = 'pred'; // 'pred' or 'off'
+        let currentTab = 'fixture';
+        let customNewAvatar = '👧';
+        let isAdminLoggedIn = false;
+
+        // Load or initialize static database
+        function initAppDatabase() {
+            // Seed Users
+            const storedUsers = localStorage.getItem('polla_users');
+            if (storedUsers) {
+                users = JSON.parse(storedUsers);
+            } else {
+                users = [
+                    { id: 1, name: "Antonia", avatar: "👧", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 2, name: "Salvador", avatar: "👦", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 3, name: "Graciela", avatar: "👵", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 4, name: "Papá (Edwin)", avatar: "👨", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 5, name: "Mamá", avatar: "👩", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" }
+                ];
+                saveUsersToStorage();
+            }
+
+            // Seed Matches
+            const storedMatches = localStorage.getItem('polla_matches');
+            if (storedMatches) {
+                matches = JSON.parse(storedMatches);
+            } else {
+                matches = RAW_MATCHES.map(m => ({
+                    id: m[0],
+                    team1: m[1],
+                    team2: m[2],
+                    time: m[3],
+                    groupCode: m[4],
+                    stadium: m[5],
+                    goals1: "",
+                    goals2: ""
+                }));
+                saveMatchesToStorage();
+            }
+
+            // Seed Predictions
+            const storedPreds = localStorage.getItem('polla_predictions');
+            if (storedPreds) {
+                predictions = JSON.parse(storedPreds);
+            } else {
+                predictions = {};
+            }
+
+            // Seed Official Specials
+            const storedOffSpecials = localStorage.getItem('polla_official_specials');
+            if (storedOffSpecials) {
+                officialSpecials = JSON.parse(storedOffSpecials);
+            } else {
+                officialSpecials = { champion: "", subchampion: "", thirdPlace: "", goleador: "", asistente: "", mvp: "", portero: "", vallaMenosVencida: "" };
+                saveOfficialSpecialsToStorage();
+            }
+
+            // Fetch last chosen active user id
+            const lastActive = localStorage.getItem('polla_active_user_id');
+            if (lastActive) {
+                activeUserId = parseInt(lastActive);
+                if (!users.some(u => u.id === activeUserId)) activeUserId = users[0].id;
+            } else {
+                activeUserId = users[0].id;
+            }
+        }
+
+        function saveUsersToStorage() { localStorage.setItem('polla_users', JSON.stringify(users)); }
+        function saveMatchesToStorage() { localStorage.setItem('polla_matches', JSON.stringify(matches)); }
+        function savePredictionsToStorage() { localStorage.setItem('polla_predictions', JSON.stringify(predictions)); }
+        function saveOfficialSpecialsToStorage() { localStorage.setItem('polla_official_specials', JSON.stringify(officialSpecials)); }
+
+        // Fetch user prediction safely
+        function getPrediction(userId, matchId) {
+            return predictions[`${userId}_${matchId}`] || { goals1: "", goals2: "" };
+        }
+
+        // Save individual prediction
+        function savePrediction(matchId, goals1, goals2) {
+            predictions[`${activeUserId}_${matchId}`] = { goals1: goals1, goals2: goals2 };
+            savePredictionsToStorage();
+            calculateAndRefresh();
+            showToast("Pronóstico autoguardado 🍃");
+        }
+
+        function saveSpecialPrediction(field, value) {
+            const userIndex = users.findIndex(u => u.id === activeUserId);
+            if (userIndex !== -1) {
+                users[userIndex][field] = value;
+                saveUsersToStorage();
+                calculateAndRefresh();
+                showToast("Opción especial guardada ✨");
+            }
+        }
+
+        // Live Clock (Colombia EST Time)
+        function updateLiveClock() {
+            const now = new Date();
+            // Convert to Colombia Time (UTC-5)
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const colTime = new Date(utc + (3600000 * -5));
+            document.getElementById('live-clock').textContent = colTime.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+        setInterval(updateLiveClock, 1000);
+
+        // Toast Messages
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+            }, 2500);
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.getElementById('view-fixture').classList.add('hidden');
+            document.getElementById('view-standings').classList.add('hidden');
+            document.getElementById('view-specials').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            
+            document.getElementById('tab-fixture').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-slate-400 hover:text-slate-200";
+            document.getElementById('tab-standings').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-slate-400 hover:text-slate-200";
+            document.getElementById('tab-specials').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-slate-400 hover:text-slate-200";
+            document.getElementById('tab-admin').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-slate-400 hover:text-slate-200";
+
+            if (tabId === 'fixture') {
+                document.getElementById('view-fixture').classList.remove('hidden');
+                document.getElementById('tab-fixture').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-white bg-emerald-600/30 border border-emerald-500/20 text-emerald-400 font-bold";
+                renderFixture();
+            } else if (tabId === 'standings') {
+                document.getElementById('view-standings').classList.remove('hidden');
+                document.getElementById('tab-standings').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-white bg-emerald-600/30 border border-emerald-500/20 text-emerald-400 font-bold";
+                renderStandings();
+            } else if (tabId === 'specials') {
+                document.getElementById('view-specials').classList.remove('hidden');
+                document.getElementById('tab-specials').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-white bg-emerald-600/30 border border-emerald-500/20 text-emerald-400 font-bold";
+                renderSpecials();
+            } else if (tabId === 'admin') {
+                document.getElementById('view-admin').classList.remove('hidden');
+                document.getElementById('tab-admin').className = "px-3.5 py-2 rounded-2xl text-sm font-semibold transition-all shrink-0 flex items-center gap-2 text-white bg-emerald-600/30 border border-emerald-500/20 text-emerald-400 font-bold";
+                renderAdmin();
+            }
+        }
+
+        // Active User switched
+        function switchActiveUser(userId) {
+            activeUserId = parseInt(userId);
+            localStorage.setItem('polla_active_user_id', activeUserId);
+            const user = users.find(u => u.id === activeUserId);
+            if (user) {
+                document.getElementById('active-user-avatar').innerHTML = user.avatar;
+            }
+            calculateAndRefresh();
+        }
+
+        // Point calculations identical to Kotlin PointsCalculator
+        function calculateScores() {
+            return users.map(user => {
+                let matchPoints = 0;
+                let exactMatches = 0;
+                let correctOutcomes = 0;
+                const matchBreakdowns = [];
+
+                matches.forEach(m => {
+                    // Check if official score exists
+                    if (m.goals1 === undefined || m.goals1 === null || m.goals1 === "") return;
+
+                    const pred = predictions[`${user.id}_${m.id}`];
+                    if (!pred || pred.goals1 === undefined || pred.goals1 === null || pred.goals1 === "") return;
+
+                    const offG1 = parseInt(m.goals1);
+                    const offG2 = parseInt(m.goals2);
+                    const prG1 = parseInt(pred.goals1);
+                    const prG2 = parseInt(pred.goals2);
+
+                    const actualOutcome = Math.sign(offG1 - offG2); // 1 for t1, -1 for t2, 0 for draw
+                    const predOutcome = Math.sign(prG1 - prG2);
+
+                    let pts = 0;
+                    let desc = "Incorrecto";
+                    if (prG1 === offG1 && prG2 === offG2) {
+                        pts = 5;
+                        exactMatches++;
+                        correctOutcomes++;
+                        desc = "Exacto (+5 pts) 🔥";
+                    } else if (actualOutcome === predOutcome) {
+                        pts = 3;
+                        correctOutcomes++;
+                        desc = "Resultado (+3 pts) ⚽";
+                    }
+
+                    matchPoints += pts;
+                    matchBreakdowns.push({
+                        matchId: m.id,
+                        matchDesc: `${m.team1} vs ${m.team2}`,
+                        predicted: `${prG1}-${prG2}`,
+                        actual: `${offG1}-${offG2}`,
+                        pts: pts,
+                        desc: desc,
+                        groupCode: m.groupCode,
+                        stadium: m.stadium,
+                        time: m.time
+                    });
+                });
+
+                // Specials
+                let championPoints = 0;
+                let subchampionPoints = 0;
+                let thirdPlacePoints = 0;
+                let goleadorPoints = 0;
+                let asistentePoints = 0;
+                let mvpPoints = 0;
+                let porteroPoints = 0;
+                let vallaMenosVencidaPoints = 0;
+
+                const tr = (str) => (str || "").trim().toLowerCase();
+
+                if (officialSpecials) {
+                    if (tr(officialSpecials.champion) && tr(officialSpecials.champion) === tr(user.predictedChampion)) championPoints = 10;
+                    if (tr(officialSpecials.subchampion) && tr(officialSpecials.subchampion) === tr(user.predictedSubchampion)) subchampionPoints = 10;
+                    if (tr(officialSpecials.thirdPlace) && tr(officialSpecials.thirdPlace) === tr(user.predictedThirdPlace)) thirdPlacePoints = 10;
+                    if (tr(officialSpecials.goleador) && tr(officialSpecials.goleador) === tr(user.predictedGoleador)) goleadorPoints = 10;
+                    if (tr(officialSpecials.asistente) && tr(officialSpecials.asistente) === tr(user.predictedAsistente)) asistentePoints = 10;
+                    if (tr(officialSpecials.mvp) && tr(officialSpecials.mvp) === tr(user.predictedMvp)) mvpPoints = 10;
+                    if (tr(officialSpecials.portero) && tr(officialSpecials.portero) === tr(user.predictedPortero)) porteroPoints = 10;
+                    if (tr(officialSpecials.vallaMenosVencida) && tr(officialSpecials.vallaMenosVencida) === tr(user.predictedVallaMenosVencida)) vallaMenosVencidaPoints = 10;
+                }
+
+                const specialPoints = championPoints + subchampionPoints + thirdPlacePoints + goleadorPoints + asistentePoints + mvpPoints + porteroPoints + vallaMenosVencidaPoints;
+                const totalPoints = matchPoints + specialPoints;
+
+                return {
+                    user: user,
+                    totalPoints: totalPoints,
+                    matchPoints: matchPoints,
+                    specialPoints: specialPoints,
+                    exactMatches: exactMatches,
+                    correctOutcomes: correctOutcomes,
+                    matchBreakdowns: matchBreakdowns,
+                    specialsBreakdown: {
+                        champion: { player: user.predictedChampion, off: officialSpecials.champion, pts: championPoints },
+                        subchampion: { player: user.predictedSubchampion, off: officialSpecials.subchampion, pts: subchampionPoints },
+                        thirdPlace: { player: user.predictedThirdPlace, off: officialSpecials.thirdPlace, pts: thirdPlacePoints },
+                        goleador: { player: user.predictedGoleador, off: officialSpecials.goleador, pts: goleadorPoints },
+                        asistente: { player: user.predictedAsistente, off: officialSpecials.asistente, pts: asistentePoints },
+                        mvp: { player: user.predictedMvp, off: officialSpecials.mvp, pts: mvpPoints },
+                        portero: { player: user.predictedPortero, off: officialSpecials.portero, pts: porteroPoints },
+                        vallaMenosVencida: { player: user.predictedVallaMenosVencida, off: officialSpecials.vallaMenosVencida, pts: vallaMenosVencidaPoints }
+                    }
+                };
+            });
+        }
+
+        // Leaderboard rendering
+        function renderLeaderboard(calculatedScores) {
+            // Sort by totalPoints desc, then exactMatches desc, then alphabetically
+            const sorted = [...calculatedScores].sort((a, b) => {
+                if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                if (b.exactMatches !== a.exactMatches) return b.exactMatches - a.exactMatches;
+                return a.user.name.localeCompare(b.user.name);
+            });
+
+            const currentActiveScores = sorted.find(s => s.user.id === activeUserId);
+            if (currentActiveScores) {
+                const myRank = sorted.indexOf(currentActiveScores) + 1;
+                document.getElementById('rank-badge').textContent = `#${myRank}`;
+                document.getElementById('user-points').textContent = `${currentActiveScores.totalPoints} pts`;
+                document.getElementById('exact-matches-count').textContent = currentActiveScores.exactMatches;
+                document.getElementById('correct-outcomes-count').textContent = currentActiveScores.correctOutcomes;
+            }
+
+            const container = document.getElementById('leaderboard-list');
+            container.innerHTML = '';
+
+            sorted.forEach((score, idx) => {
+                const rank = idx + 1;
+                const isActive = score.user.id === activeUserId;
+                
+                let rankClass = "bg-slate-800 text-slate-300";
+                if (rank === 1) rankClass = "bg-yellow-450/20 text-yellow-500 border border-yellow-500/30 font-bold";
+                if (rank === 2) rankClass = "bg-slate-300/20 text-slate-300 border border-slate-300/30 font-bold";
+                if (rank === 3) rankClass = "bg-amber-600/20 text-amber-500 border border-amber-600/30 font-bold";
+
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-3 rounded-2xl cursor-pointer select-none transition-all ${isActive ? 'bg-emerald-600/10 border-l-4 border-emerald-500 shadow' : 'bg-slate-950/25 border border-slate-850 hover:bg-slate-850/60'}`;
+                
+                // Clicking container views points breakdown details
+                card.setAttribute('onclick', `openBreakdownModal(${score.user.id})`);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 flex items-center justify-center rounded-lg text-xs ${rankClass}">${rank}</span>
+                        <span class="text-xl leading-none">${score.user.avatar}</span>
+                        <div>
+                            <span class="font-bold text-sm ${isActive ? 'text-emerald-400' : 'text-slate-100'}">${score.user.name}</span>
+                            <span class="block text-2xs text-slate-400 font-mono">${score.exactMatches} exactos • ${score.correctOutcomes} resultados</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="font-extrabold text-sm text-slate-100">${score.totalPoints}</span>
+                        <span class="text-2xs text-emerald-400 font-bold">pts</span>
+                        <i class="fa-solid fa-chevron-right text-slate-650 text-2xs pl-2"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Active Player dropdown populating
+        function renderUserSelectDropdown() {
+            const select = document.getElementById('user-select');
+            select.innerHTML = '';
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = `${u.avatar} ${u.name}`;
+                if (u.id === activeUserId) opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+
+        // Calculate rankings and standing widgets
+        function calculateAndRefresh() {
+            const computed = calculateScores();
+            renderUserSelectDropdown();
+            renderLeaderboard(computed);
+            // Redraw active views
+            if (currentTab === 'fixture') renderFixture();
+            if (currentTab === 'standings') renderStandings();
+            if (currentTab === 'specials') renderSpecials();
+            if (currentTab === 'admin') renderAdmin();
+        }
+
+        // --- TAB 1: FIXTURE FEED RENDERING ---
+        function renderFixture() {
+            const groupFilter = document.getElementById('filter-group').value;
+            const dateFilter = document.getElementById('filter-date').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const searchTerm = document.getElementById('search-country').value.trim().toLowerCase();
+
+            const feed = document.getElementById('fixture-feed');
+            feed.innerHTML = '';
+
+            // Group matches by day / group if needed or compile filtered list
+            const filtered = matches.filter(m => {
+                if (groupFilter !== 'Todos' && m.groupCode !== groupFilter) return false;
+                if (dateFilter !== 'Todos' && !m.time.startsWith(dateFilter)) return false;
+                
+                const pred = getPrediction(activeUserId, m.id);
+                const hasPred = pred.goals1 !== undefined && pred.goals1 !== null && pred.goals1 !== "";
+                if (statusFilter === 'Pendiente' && hasPred) return false;
+                if (statusFilter === 'Pronosticado' && !hasPred) return false;
+
+                if (searchTerm.length > 0) {
+                    const t1 = m.team1.toLowerCase();
+                    const t2 = m.team2.toLowerCase();
+                    if (!t1.includes(searchTerm) && !t2.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                feed.innerHTML = `
+                    <div class="text-center py-10 bg-slate-950/20 border border-slate-800 rounded-3xl">
+                        <span class="text-3xl block mb-2">⚽</span>
+                        <p class="text-sm font-semibold text-slate-300">Ningún partido coincide con los filtros</p>
+                        <p class="text-xs text-slate-500">Prueba cambiando los criterios en la barra superior.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(m => {
+                const pred = getPrediction(activeUserId, m.id);
+                const flag1 = flagMapping[m.team1] || "🏳️";
+                const flag2 = flagMapping[m.team2] || "🏳️";
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-950/25 border border-slate-850 p-4 rounded-3xl space-y-3 shadow transition-all hover:border-slate-805";
+
+                // Calculations of earned pts on this specific card
+                let resultBadge = '';
+                const hasActual = m.goals1 !== "" && m.goals1 !== undefined && m.goals1 !== null;
+                const hasPred = pred.goals1 !== "" && pred.goals1 !== undefined && pred.goals1 !== null;
+
+                if (hasActual) {
+                    const offG1 = parseInt(m.goals1);
+                    const offG2 = parseInt(m.goals2);
+                    
+                    if (hasPred) {
+                        const prG1 = parseInt(pred.goals1);
+                        const prG2 = parseInt(pred.goals2);
+                        const isExact = (prG1 === offG1 && prG2 === offG2);
+                        const isOutcome = (Math.sign(prG1 - prG2) === Math.sign(offG1 - offG2));
+
+                        if (isExact) {
+                            resultBadge = `<span class="bg-emerald-500/10 text-emerald-400 text-3xs sm:text-2xs font-bold px-2 py-1 rounded-xl border border-emerald-500/25">¡Exacto! +5 pts 🔥</span>`;
+                        } else if (isOutcome) {
+                            resultBadge = `<span class="bg-indigo-500/10 text-indigo-400 text-3xs sm:text-2xs font-bold px-2 py-1 rounded-xl border border-indigo-500/25">Resultado +3 pts ⚽</span>`;
+                        } else {
+                            resultBadge = `<span class="bg-slate-800 text-slate-400 text-3xs sm:text-2xs px-2 py-1 rounded-xl">Incorrecto 0 pts</span>`;
+                        }
+                    } else {
+                        resultBadge = `<span class="bg-yellow-500/10 text-yellow-450 text-2xs px-2 py-1 rounded-xl font-medium">No pronosticaste</span>`;
+                    }
+                }
+
+                // Show formatted Date in Colombian Time
+                const dateParts = m.time.split(" ");
+                const formattedDate = dateParts[0].split("-").reverse().join("/") + " - " + dateParts[1];
+
+                card.innerHTML = `
+                    <!-- Info top bar -->
+                    <div class="flex items-center justify-between text-2xs font-semibold text-slate-400 border-b border-slate-850 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-slate-850 text-slate-300 font-mono px-1.5 py-0.5 rounded border border-slate-750">Partid ${m.id}</span>
+                            <span class="text-emerald-400">${m.groupCode}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-mono text-slate-300"><i class="fa-regular fa-clock pr-1 text-slate-500"></i>${formattedDate} Col</span>
+                            ${resultBadge}
+                        </div>
+                    </div>
+
+                    <!-- Main match predictor inputs -->
+                    <div class="flex items-center justify-between gap-2 sm:gap-6 py-1">
+                        <!-- T1 -->
+                        <div class="flex-1 flex items-center justify-end gap-2.5">
+                            <span class="font-semibold text-xs sm:text-sm text-slate-100 text-right">${m.team1}</span>
+                            <span class="text-xl sm:text-2xl">${flag1}</span>
+                        </div>
+
+                        <!-- INPUT SCOREBOARD BOXES -->
+                        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 p-1.5 rounded-2xl shadow-inner">
+                            <input onchange="savePrediction(${m.id}, this.value, document.getElementById('m-${m.id}-p2').value)" type="number" id="m-${m.id}-p1" min="0" placeholder="-" value="${pred.goals1 !== undefined ? pred.goals1 : ''}" class="w-10 sm:w-11 bg-slate-950 border border-slate-850 text-center text-sm font-bold text-slate-100 rounded-xl py-1 focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                            <span class="text-slate-650 font-bold text-xs">-</span>
+                            <input onchange="savePrediction(${m.id}, document.getElementById('m-${m.id}-p1').value, this.value)" type="number" id="m-${m.id}-p2" min="0" placeholder="-" value="${pred.goals2 !== undefined ? pred.goals2 : ''}" class="w-10 sm:w-11 bg-slate-950 border border-slate-850 text-center text-sm font-bold text-slate-100 rounded-xl py-1 focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+
+                        <!-- T2 -->
+                        <div class="flex-1 flex items-center justify-start gap-2.5">
+                            <span class="text-xl sm:text-2xl">${flag2}</span>
+                            <span class="font-semibold text-xs sm:text-sm text-slate-100">${m.team2}</span>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Stadium Info & Expansion toggler -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-860 text-2xs text-slate-450 font-medium">
+                        <span class="text-center sm:text-left"><i class="fa-solid fa-location-dot pr-1 text-slate-500"></i>${m.stadium}</span>
+                        
+                        <div class="flex gap-2">
+                            ${hasActual ? `
+                            <div class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 font-bold rounded-lg px-2 py-0.5">
+                                Oficial: ${m.goals1} - ${m.goals2}
+                            </div>
+                            ` : ''}
+                            <button onclick="toggleAllPredictionsAccordion(${m.id}, this)" class="bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 font-semibold px-2 py-1 rounded-lg transition-all flex items-center gap-1">
+                                Ver Pronósticos <i class="fa-solid fa-chevron-down text-4xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Expanded Accordion of all inputs -->
+                    <div id="acc-${m.id}" class="hidden py-2 bg-slate-950/40 rounded-xl border border-slate-850/50 text-3xs sm:text-2xs overflow-hidden max-h-40 overflow-y-auto space-y-1.5 p-2">
+                        <!-- Loaded dynamically -->
+                    </div>
+                `;
+                feed.appendChild(card);
+            });
+        }
+
+        // Show what others guessed dynamically for standard family tracking
+        function toggleAllPredictionsAccordion(matchId, button) {
+            const acc = document.getElementById(`acc-${matchId}`);
+            if (!acc.classList.contains('hidden')) {
+                acc.classList.add('hidden');
+                button.innerHTML = `Ver Pronósticos <i class="fa-solid fa-chevron-down text-4xs"></i>`;
+                return;
+            }
+            
+            acc.classList.remove('hidden');
+            button.innerHTML = `Ocultar <i class="fa-solid fa-chevron-up text-4xs"></i>`;
+
+            const m = matches.find(match => match.id === matchId);
+            acc.innerHTML = `
+                <div class="grid grid-cols-5 font-bold text-slate-400 border-b border-slate-800 pb-1 text-center font-mono uppercase">
+                    <span class="col-span-2 text-left">Jugador</span>
+                    <span>Pronóstico</span>
+                    <span>Puntos</span>
+                    <span>Resultado</span>
+                </div>
+            `;
+
+            users.forEach(user => {
+                const pred = getPrediction(user.id, matchId);
+                const hasPred = pred.goals1 !== "" && pred.goals1 !== undefined && pred.goals1 !== null;
+                const predStr = hasPred ? `${pred.goals1} - ${pred.goals2}` : "-";
+
+                let pointsText = "0";
+                let statusBadge = `<span class="text-slate-500">Pendiente</span>`;
+
+                if (m.goals1 !== "" && m.goals1 !== undefined && m.goals1 !== null) {
+                    if (hasPred) {
+                        const offG1 = parseInt(m.goals1);
+                        const offG2 = parseInt(m.goals2);
+                        const prG1 = parseInt(pred.goals1);
+                        const prG2 = parseInt(pred.goals2);
+                        const exact = (offG1 === prG1 && offG2 === prG2);
+                        const winner = (Math.sign(offG1 - offG2) === Math.sign(prG1 - prG2));
+                        
+                        if (exact) {
+                            pointsText = "+5";
+                            statusBadge = `<span class="text-emerald-400 font-bold">Exacto 🔥</span>`;
+                        } else if (winner) {
+                            pointsText = "+3";
+                            statusBadge = `<span class="text-indigo-400">Ganador ⚽</span>`;
+                        } else {
+                            statusBadge = `<span class="text-red-400/80">Incorrecto</span>`;
+                        }
+                    } else {
+                        statusBadge = `<span class="text-slate-500">No Jugó</span>`;
+                    }
+                }
+
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-5 py-1 items-center border-b border-slate-900/50 text-center font-medium " + (user.id === activeUserId ? "bg-emerald-500/5" : "");
+                row.innerHTML = `
+                    <span class="col-span-2 text-left flex items-center gap-1.5 font-bold">
+                        <span>${user.avatar}</span>
+                        <span class="${user.id === activeUserId ? "text-emerald-400" : "text-slate-200"}">${user.name}</span>
+                    </span>
+                    <span class="font-mono text-slate-300 font-extrabold bg-slate-900 px-1 rounded inline-block w-8 mx-auto">${predStr}</span>
+                    <span class="font-bold ${pointsText !== "0" ? "text-emerald-400" : "text-slate-400"}">${pointsText} pts</span>
+                    <span>${statusBadge}</span>
+                `;
+                acc.appendChild(row);
+            });
+        }
+
+        // --- TAB 2: GROUP STANDINGS ---
+        function switchStandingsBasis(basis) {
+            standingsBasis = basis;
+            document.getElementById('btn-st-pred').className = basis === 'pred' ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200";
+            document.getElementById('btn-st-off').className = basis === 'off' ? "px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200";
+            renderStandings();
+        }
+
+        function calculateGroupTables(forUserId) {
+            const standings = {};
+            const groups = {
+                "Grupo A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
+                "Grupo B": ["Canadá", "Bosnia y Herzegovina", "Catar", "Suiza"],
+                "Grupo C": ["Brasil", "Marruecos", "Haití", "Escocia"],
+                "Grupo D": ["Estados Unidos", "Paraguay", "Australia", "Turquía"],
+                "Grupo E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
+                "Grupo F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
+                "Grupo G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
+                "Grupo H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
+                "Grupo I": ["Francia", "Senegal", "Irak", "Noruega"],
+                "Grupo J": ["Argentina", "Argelia", "Austria", "Jordania"],
+                "Grupo K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
+                "Grupo L": ["Inglaterra", "Croacia", "Ghana", "Panamá"]
+            };
+
+            for (const groupName in groups) {
+                standings[groupName] = {};
+                for (const team of groups[groupName]) {
+                    standings[groupName][team] = { team: team, points: 0, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, gc: 0, dg: 0 };
+                }
+            }
+
+            matches.forEach(m => {
+                let g1, g2;
+                if (forUserId) {
+                    // based on predictions
+                    const p = getPrediction(forUserId, m.id);
+                    if (p.goals1 !== undefined && p.goals1 !== null && p.goals1 !== "") {
+                        g1 = parseInt(p.goals1);
+                        g2 = parseInt(p.goals2);
+                    } else {
+                        return; // skipped
+                    }
+                } else {
+                    // based on official results
+                    if (m.goals1 !== undefined && m.goals1 !== null && m.goals1 !== "") {
+                        g1 = parseInt(m.goals1);
+                        g2 = parseInt(m.goals2);
+                    } else {
+                        return; // skipped
+                    }
+                }
+
+                const group = m.groupCode;
+                const t1 = standings[group][m.team1];
+                const t2 = standings[group][m.team2];
+                if (!t1 || !t2) return;
+
+                t1.played++;
+                t2.played++;
+                t1.gf += g1;
+                t1.gc += g2;
+                t2.gf += g2;
+                t2.gc += g1;
+
+                if (g1 > g2) {
+                    t1.won++;
+                    t1.points += 3;
+                    t2.lost++;
+                } else if (g1 < g2) {
+                    t2.won++;
+                    t2.points += 3;
+                    t1.lost++;
+                } else {
+                    t1.drawn++;
+                    t1.points += 1;
+                    t2.drawn++;
+                    t2.points += 1;
+                }
+                t1.dg = t1.gf - t1.gc;
+                t2.dg = t2.gf - t2.gc;
+            });
+
+            const sorted = {};
+            for (const groupName in standings) {
+                const list = Object.values(standings[groupName]);
+                list.sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    if (b.dg !== a.dg) return b.dg - a.dg;
+                    if (b.gf !== a.gf) return b.gf - a.gf;
+                    return a.team.localeCompare(b.team);
+                });
+                sorted[groupName] = list;
+            }
+            return sorted;
+        }
+
+        function renderStandings() {
+            const grid = document.getElementById('standings-grid');
+            grid.innerHTML = '';
+
+            const computed = calculateGroupTables(standingsBasis === 'pred' ? activeUserId : null);
+
+            for (const groupName in computed) {
+                const teams = computed[groupName];
+                const card = document.createElement('div');
+                card.className = "bg-slate-950/20 border border-slate-850 p-4 rounded-3xl space-y-2.5 shadow-md";
+                
+                let teamRowsHTML = '';
+                teams.forEach((t, idx) => {
+                    const pos = idx + 1;
+                    const flag = flagMapping[t.team] || "🏳️";
+                    
+                    let bgPos = "bg-slate-900 text-slate-400";
+                    if (pos <= 2) bgPos = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold";
+
+                    teamRowsHTML += `
+                        <tr class="border-b border-slate-900/40 text-xs hover:bg-slate-900/20 transition-colors">
+                            <td class="p-2 text-center">
+                                <span class="w-5 h-5 flex items-center justify-center rounded-lg text-3xs ${bgPos}">${pos}</span>
+                            </td>
+                            <td class="p-2 font-bold text-slate-200 flex items-center gap-1.5">
+                                <span class="text-sm sm:text-base leading-none">${flag}</span>
+                                <span class="truncate max-w-[80px] sm:max-w-none">${t.team}</span>
+                            </td>
+                            <td class="p-2 text-center text-emerald-400 font-extrabold text-sm">${t.points}</td>
+                            <td class="p-2 text-center text-slate-400 font-mono">${t.played}</td>
+                            <td class="p-2 text-center text-slate-400 font-mono hidden sm:table-cell">${t.won}</td>
+                            <td class="p-2 text-center text-slate-400 font-mono hidden sm:table-cell">${t.drawn}</td>
+                            <td class="p-2 text-center text-slate-400 font-mono hidden sm:table-cell">${t.lost}</td>
+                            <td class="p-2 text-center text-slate-400 font-mono hidden sm:table-cell">${t.gf}:${t.gc}</td>
+                            <td class="p-2 text-center font-bold font-mono ${t.dg > 0 ? 'text-emerald-400' : t.dg < 0 ? 'text-red-400/85' : 'text-slate-400'}">${t.dg > 0 ? '+' : ''}${t.dg}</td>
+                        </tr>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <h4 class="font-bold text-xs uppercase tracking-widest text-emerald-400 pb-1.5 border-b border-slate-850 flex items-center justify-between">
+                        <span>${groupName}</span>
+                        <span class="text-2xs text-slate-500 font-medium font-sans">Mundial 2026</span>
+                    </h4>
+                    <table class="w-full text-left border-collapse select-none">
+                        <thead>
+                            <tr class="text-3xs text-slate-500 uppercase tracking-wider border-b border-slate-900/50">
+                                <th class="p-1.5 text-center">Pos</th>
+                                <th class="p-1.5">Selección</th>
+                                <th class="p-1.5 text-center">Pts</th>
+                                <th class="p-1.5 text-center">PJ</th>
+                                <th class="p-1.5 text-center hidden sm:table-cell">G</th>
+                                <th class="p-1.5 text-center hidden sm:table-cell">E</th>
+                                <th class="p-1.5 text-center hidden sm:table-cell">P</th>
+                                <th class="p-1.5 text-center hidden sm:table-cell">GF:GC</th>
+                                <th class="p-1.5 text-center">DG</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${teamRowsHTML}
+                        </tbody>
+                    </table>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        // --- TAB 3: ADDITIONAL SPECIALS ---
+        function populateSpecialsDropdownOptions() {
+            const dropdownIds = ["spec-champion", "spec-subchampion", "spec-thirdPlace", "spec-vallaMenosVencida", "adm-champion", "adm-subchampion", "adm-thirdPlace", "adm-vallaMenosVencida"];
+            const countries = Object.keys(flagMapping).sort();
+            dropdownIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = '<option value="">-- Elige una Selección --</option>';
+                countries.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = `${flagMapping[c]} ${c}`;
+                    el.appendChild(opt);
+                });
+            });
+
+            const playerDropdownIds = ["spec-goleador", "spec-asistente", "spec-mvp", "spec-portero", "adm-goleador", "adm-asistente", "adm-mvp", "adm-portero"];
+            playerDropdownIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = '<option value="">-- Elige un Jugador --</option>';
+                starPlayers.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p;
+                    opt.textContent = p;
+                    el.appendChild(opt);
+                });
+            });
+        }
+
+        function renderSpecials() {
+            const user = users.find(u => u.id === activeUserId);
+            if (!user) return;
+
+            const fields = ["champion", "subchampion", "thirdPlace", "goleador", "asistente", "mvp", "portero", "vallaMenosVencida"];
+            
+            fields.forEach(f => {
+                const el = document.getElementById(`spec-${f}`);
+                if (el) el.value = user[`predicted${f.charAt(0).toUpperCase() + f.slice(1)}`] || "";
+
+                // Side decoration status badge (compare prediction vs official)
+                const statusEl = document.getElementById(`off-${f.substring(0,3)}-status`);
+                if (statusEl) {
+                    const offVal = officialSpecials[f];
+                    const predVal = user[`predicted${f.charAt(0).toUpperCase() + f.slice(1)}`] || "";
+
+                    if (offVal) {
+                        if (predVal) {
+                            const exact = (offVal.trim().toLowerCase() === predVal.trim().toLowerCase());
+                            if (exact) {
+                                statusEl.className = "block text-3xs font-extrabold text-emerald-400 mt-1 uppercase";
+                                statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Acertado (+10 pts) | Oficial: ${offVal}`;
+                            } else {
+                                statusEl.className = "block text-3xs text-red-400 font-medium mt-1 uppercase";
+                                statusEl.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Fallido (0 pts) | Oficial: ${offVal}`;
+                            }
+                        } else {
+                            statusEl.className = "block text-3xs text-slate-500 font-medium mt-1 uppercase";
+                            statusEl.innerHTML = `No pronosticado | Oficial: ${offVal}`;
+                        }
+                    } else {
+                        statusEl.className = "block text-3xs text-slate-500 font-medium mt-1 italic";
+                        statusEl.innerHTML = "Aún sin definir oficialmente por el Administrador";
+                    }
+                }
+            });
+        }
+
+        // --- TAB 4: ADMIN CONTROLLER PANEL ---
+        function verifyAdminPIN() {
+            const input = document.getElementById('admin-pin-input').value;
+            if (input === '1234') {
+                isAdminLoggedIn = true;
+                document.getElementById('admin-auth').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                renderAdmin();
+                showToast("Admin verificado con éxito 🔓");
+            } else {
+                alert("PIN Incorrecto. Intenta con la clave '1234'.");
+            }
+        }
+
+        function renderAdmin() {
+            if (!isAdminLoggedIn) return;
+
+            // Load values to drop downs
+            const fields = ["champion", "subchampion", "thirdPlace", "goleador", "asistente", "mvp", "portero", "vallaMenosVencida"];
+            fields.forEach(f => {
+                const el = document.getElementById(`adm-${f}`);
+                if (el) el.value = officialSpecials[f] || "";
+            });
+
+            // List of 72 matches for direct actual result inputs
+            const container = document.getElementById('admin-matches-list');
+            container.innerHTML = '';
+
+            matches.forEach(m => {
+                const flag1 = flagMapping[m.team1] || "🏳️";
+                const flag2 = flagMapping[m.team2] || "🏳️";
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-2xl flex items-center justify-between gap-3 text-xs";
+                card.innerHTML = `
+                    <div class="flex items-center gap-1.5 font-mono text-slate-500">
+                        <span class="bg-slate-950 px-1 py-0.5 rounded text-4xs">Part. ${m.id}</span>
+                        <span class="text-3xs text-emerald-400 font-sans">${m.groupCode}</span>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="text-right font-medium truncate w-14 sm:w-20 text-3xs sm:text-xs">${m.team1}</span>
+                        <span class="leading-none text-base">${flag1}</span>
+                        
+                        <div class="bg-slate-950 border border-slate-800 rounded-lg p-0.5 flex items-center shadow-inner">
+                            <input onchange="saveOfficialMatchScore(${m.id}, 'goals1', this.value)" type="number" id="adm-m-${m.id}-g1" value="${m.goals1 !== undefined ? m.goals1 : ''}" placeholder="-" class="w-8 text-center bg-transparent text-xs font-bold text-emerald-400 outline-none">
+                            <span class="text-slate-650 font-bold">-</span>
+                            <input onchange="saveOfficialMatchScore(${m.id}, 'goals2', this.value)" type="number" id="adm-m-${m.id}-g2" value="${m.goals2 !== undefined ? m.goals2 : ''}" placeholder="-" class="w-8 text-center bg-transparent text-xs font-bold text-emerald-400 outline-none">
+                        </div>
+
+                        <span class="leading-none text-base">${flag2}</span>
+                        <span class="font-medium truncate w-14 sm:w-20 text-3xs sm:text-xs">${m.team2}</span>
+                    </div>
+
+                    <div class="text-4xs text-slate-450 font-mono hidden sm:block">${m.stadium}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function saveOfficialMatchScore(matchId, field, value) {
+            const mIndex = matches.findIndex(match => match.id === matchId);
+            if (mIndex !== -1) {
+                matches[mIndex][field] = value;
+                // If either is blank, keep both blank to not compute points prematurely
+                if (matches[mIndex].goals1 === "" || matches[mIndex].goals2 === "") {
+                    matches[mIndex].goals1 = "";
+                    matches[mIndex].goals2 = "";
+                }
+                saveMatchesToStorage();
+                calculateAndRefresh();
+                showToast("Resultado Oficial actualizado 🏅");
+            }
+        }
+
+        function saveOfficialSpecial(field, value) {
+            officialSpecials[field] = value;
+            saveOfficialSpecialsToStorage();
+            calculateAndRefresh();
+            showToast("Premio Oficial Actualizado 🏅");
+        }
+
+        // Wipe database back to default state
+        function resetOfficialScores() {
+            if (confirm("¿Estás seguro que deseas reiniciar todos los resultados oficiales e individuales en esta polla?")) {
+                localStorage.clear();
+                initAppDatabase();
+                isAdminLoggedIn = false;
+                document.getElementById('admin-auth').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('admin-pin-input').value = '';
+                calculateAndRefresh();
+                switchTab('fixture');
+                showToast("Base de datos limpia correctamente 🗑️");
+            }
+        }
+
+        // Demo pre-population of some official matches (Mocking completion of round 1)
+        function loadSampleOfficialScores() {
+            // First 12 matches (First full round)
+            const mockScores = [
+                [1, "2", "1"], // México vs Sudáfrica (2 - 1)
+                [2, "0", "0"], // Corea vs Rep Checa (0 - 0)
+                [3, "1", "1"], // Canadá vs Bosnia (1 - 1)
+                [4, "3", "1"], // EEUU vs Paraguay (3 - 1)
+                [5, "0", "2"], // Catar vs Suiza (0 - 2)
+                [6, "1", "2"], // Brasil vs Marruecos (1 - 2)
+                [7, "2", "0"], // Haití vs Escocia (2 - 0)
+                [8, "1", "1"], // Australia vs Turquía (1 - 1)
+                [9, "4", "0"], // Alemania vs Curazao (4 - 0)
+                [10, "2", "3"], // Países Bajos vs Japón (2 - 3)
+                [11, "1", "2"], // Costa de Marfil vs Ecuador (1 - 2)
+                [12, "0", "1"]  // Suecia vs Túnez (0 - 1)
+            ];
+
+            mockScores.forEach(ms => {
+                const mIndex = matches.findIndex(match => match.id === ms[0]);
+                if (mIndex !== -1) {
+                    matches[mIndex].goals1 = ms[1];
+                    matches[mIndex].goals2 = ms[2];
+                }
+            });
+
+            // Set some official specials too
+            officialSpecials.champion = "Colombia";
+            officialSpecials.subchampion = "España";
+            officialSpecials.mvp = "James Rodríguez";
+            officialSpecials.goleador = "Erling Haaland";
+            
+            saveMatchesToStorage();
+            saveOfficialSpecialsToStorage();
+            calculateAndRefresh();
+            showToast("Simulación de Jornada 1 completada con Éxito 💥");
+        }
+
+        // Demo user predictions so family doesn't have to fill 72 matches to see a live leaderboard in action
+        function simulateAllUserPredictions() {
+            // Generates a semi-random set of forecasts for each of the 5 main players
+            users.forEach(user => {
+                matches.forEach(m => {
+                    // Let's create varying but smart forecasts
+                    let g1 = Math.floor(Math.random() * 3);
+                    let g2 = Math.floor(Math.random() * 3);
+                    if (user.name === "Papá (Edwin)") { g1 += 1; } // Edwin is very football-oriented!
+                    if (user.name === "Graciela") { g2 = g1 = Math.floor(Math.random() * 2); } // Granny loves draws
+                    
+                    predictions[`${user.id}_${m.id}`] = { goals1: g1.toString(), goals2: g2.toString() };
+                });
+
+                // Also populate some special selects
+                user.predictedChampion = user.name === "Papá (Edwin)" ? "Colombia" : "Argentina";
+                user.predictedSubchampion = "España";
+                user.predictedThirdPlace = "Alemania";
+                user.predictedGoleador = "Kylian Mbappé";
+                user.predictedAsistente = "Lionel Messi";
+                user.predictedMvp = "James Rodríguez";
+                user.predictedPortero = "Emiliano Martínez";
+                user.predictedVallaMenosVencida = "Francia";
+            });
+
+            savePredictionsToStorage();
+            saveUsersToStorage();
+            calculateAndRefresh();
+            showToast("Pronósticos Simulados cargados con éxito para Antonia, Edwin, etc. 🔮");
+        }
+
+        // --- SUB MODALS: FAMILY SYNC TOOL (OFFLINE COMPATIBLE) ---
+        function openSyncModal() {
+            document.getElementById('import-code-area').value = '';
+            document.getElementById('sync-modal').classList.remove('hidden');
+        }
+
+        function closeSyncModal() {
+            document.getElementById('sync-modal').classList.add('hidden');
+        }
+
+        function generateAndCopySyncCode() {
+            try {
+                // Bundle all local state
+                const payload = {
+                    users: users,
+                    predictions: predictions,
+                    officialSpecials: officialSpecials,
+                    matches: matches,
+                    version: "2026.1"
+                };
+                
+                // Convert to JSON and encrypt/obfuscate in Base64 so WhatsApp doesn't mess with curly brackets or quotes
+                const jsonStr = JSON.stringify(payload);
+                const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(encoded).then(() => {
+                    showToast("¡Código copiado! Pégalo en tu grupo de WhatsApp familiar. 📋");
+                }).catch(err => {
+                    // Fallback to prompt or selection
+                    alert("No pudimos copiar automáticamente. Por favor copia este código:\n\n" + encoded);
+                });
+            } catch (e) {
+                alert("Error al empaquetar los datos: " + e.message);
+            }
+        }
+
+        function importSyncCode() {
+            const rawCode = document.getElementById('import-code-area').value.trim();
+            if (!rawCode) {
+                alert("Por favor pega el código de sincronización que copiaste de WhatsApp.");
+                return;
+            }
+
+            try {
+                // Decode base64
+                const decodedStr = decodeURIComponent(escape(atob(rawCode)));
+                const parsed = JSON.parse(decodedStr);
+
+                if (!parsed || !parsed.users || !parsed.predictions) {
+                    alert("El código ingresado no contiene datos de polla válidos o está corrupto.");
+                    return;
+                }
+
+                // Confirm merge/overwrite with beautiful message
+                const numPlayers = parsed.users.length;
+                if (!confirm(`Se detectaron ${numPlayers} jugadores de la Polla en este código. Esto reemplazará los datos de tu dispositivo para sincronizarte con el resto de la familia. ¿Deseas continuar?`)) {
+                    return;
+                }
+
+                // Update state
+                users = parsed.users;
+                predictions = parsed.predictions;
+                if (parsed.officialSpecials) officialSpecials = parsed.officialSpecials;
+                if (parsed.matches) matches = parsed.matches;
+
+                // Sync to localStorage
+                saveUsersToStorage();
+                savePredictionsToStorage();
+                saveMatchesToStorage();
+                saveOfficialSpecialsToStorage();
+
+                // Recalculate everything and reload screen
+                calculateAndRefresh();
+                closeSyncModal();
+                showToast("¡Sincronización familiar completada con éxito! 🔄");
+            } catch (e) {
+                alert("Ocurrió un error al procesar el código. Asegúrate de haber copiado el texto completo de WhatsApp sin modificaciones.");
+            }
+        }
+
+        // --- SUB MODALS: PARTICIPANT CREATION ---
+        function openAddUserModal() {
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('adduser-modal').classList.remove('hidden');
+        }
+
+        function closeAddUserModal() {
+            document.getElementById('adduser-modal').classList.add('hidden');
+        }
+
+        function selectNewUserAvatar(emoji, element) {
+            customNewAvatar = emoji;
+            const buttons = document.querySelectorAll('.avatar-select-btn');
+            buttons.forEach(b => {
+                b.className = "avatar-select-btn p-1.5 rounded-xl border border-slate-800 hover:border-slate-700";
+            });
+            element.className = "avatar-select-btn p-1.5 rounded-xl border border-emerald-500 bg-emerald-500/10";
+        }
+
+        function saveNewUser() {
+            const name = document.getElementById('new-user-name').value.trim();
+            if (!name) {
+                alert("Por favor escribe el nombre del jugador");
+                return;
+            }
+
+            const newId = users.reduce((max, u) => u.id > max ? u.id : max, 0) + 1;
+            users.push({
+                id: newId,
+                name: name,
+                avatar: customNewAvatar,
+                predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "",
+                predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: ""
+            });
+
+            saveUsersToStorage();
+            // Automatically log them as the active session player
+            activeUserId = newId;
+            localStorage.setItem('polla_active_user_id', activeUserId);
+            
+            document.getElementById('active-user-avatar').innerHTML = customNewAvatar;
+            closeAddUserModal();
+            calculateAndRefresh();
+            showToast(`¡Bienvenido a la Polla Mundial, ${name}! 👋`);
+        }
+
+        // --- SUB MODALS: POP OVER PERFORMANCE DETAILS ---
+        function openBreakdownModal(userId) {
+            const dataList = calculateScores();
+            const usrScore = dataList.find(s => s.user.id === userId);
+            if (!usrScore) return;
+
+            document.getElementById('bd-avatar').textContent = usrScore.user.avatar;
+            document.getElementById('bd-username').textContent = usrScore.user.name;
+            document.getElementById('bd-total-pts').textContent = `${usrScore.totalPoints} pts`;
+            document.getElementById('bd-match-pts').textContent = `${usrScore.matchPoints} pts`;
+            document.getElementById('bd-special-pts').textContent = `${usrScore.specialPoints} pts`;
+            
+            // Accuracy
+            const playedCount = matches.filter(m => m.goals1 !== "" && m.goals1 !== undefined && m.goals1 !== null).length;
+            const accuracy = playedCount > 0 ? Math.round((usrScore.correctOutcomes / playedCount) * 100) : 0;
+            document.getElementById('bd-accuracy').textContent = `${accuracy}%`;
+
+            // Render details specials lists
+            const specCont = document.getElementById('bd-specials-breakdown');
+            specCont.innerHTML = '';
+
+            const specKeys = [
+                ["champion", "🏆 Campeón"],
+                ["subchampion", "🥈 Subcampeón"],
+                ["thirdPlace", "🥉 Tercer lugar"],
+                ["goleador", "⚽ Balón Goleador"],
+                ["asistente", "👟 Asistente"],
+                ["mvp", "🌟 MVP del torneo"],
+                ["portero", "🧤 Mejor Portero"],
+                ["vallaMenosVencida", "🛡️ Valla Menos Vencida"]
+            ];
+
+            specKeys.forEach(pair => {
+                const key = pair[0];
+                const label = pair[1];
+                const item = usrScore.specialsBreakdown[key];
+
+                const row = document.createElement('div');
+                row.className = "bg-slate-900 border border-slate-850 p-2 rounded-xl space-y-0.5 " + (item.pts > 0 ? "border-emerald-500/25 bg-emerald-500/5" : "");
+                row.innerHTML = `
+                    <div class="flex items-center justify-between font-semibold">
+                        <span class="text-slate-400 select-none">${label}</span>
+                        <span class="${item.pts > 0 ? "text-emerald-400 font-bold" : "text-slate-500"}">${item.pts > 0 ? "+10 pts" : "0 pts"}</span>
+                    </div>
+                    <div class="truncate text-slate-100 font-bold">${item.player || "No elegido"}</div>
+                    ${item.off ? `<div class="text-4xs text-emerald-400 font-mono uppercase">Oficial: ${item.off}</div>` : ''}
+                `;
+                specCont.appendChild(row);
+            });
+
+            // Render exact games predictions list
+            const matchCont = document.getElementById('bd-matches-feed');
+            matchCont.innerHTML = '';
+
+            if (usrScore.matchBreakdowns.length === 0) {
+                matchCont.innerHTML = `<p class="text-center text-slate-500 italic py-4">Aún no hay puntos por partidos en el historial.</p>`;
+            } else {
+                usrScore.matchBreakdowns.sort((a,b) => b.matchId - a.matchId).forEach(mb => {
+                    const el = document.createElement('div');
+                    el.className = "bg-slate-900/60 p-2.5 rounded-xl flex items-center justify-between gap-3 text-2xs";
+                    
+                    let bgBadge = "bg-slate-950 text-slate-500 border border-slate-850";
+                    if (mb.pts === 5) bgBadge = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 font-bold";
+                    if (mb.pts === 3) bgBadge = "bg-indigo-500/10 text-indigo-400 border border-indigo-500/25";
+
+                    el.innerHTML = `
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-slate-200">${mb.matchDesc} (${mb.groupCode})</div>
+                            <div class="text-4xs text-slate-500 font-mono">${mb.time} Col</div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="text-center">
+                                <span class="text-slate-450 block text-4xs uppercase">Mi Pronóstico</span>
+                                <span class="font-bold font-mono text-slate-300 text-xs">${mb.predicted}</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-slate-450 block text-4xs uppercase">Real</span>
+                                <span class="font-bold font-mono text-slate-100 text-xs">${mb.actual}</span>
+                            </div>
+                            <div class="px-2 py-1 rounded-lg ${bgBadge}">
+                                +${mb.pts} pts
+                            </div>
+                        </div>
+                    `;
+                    matchCont.appendChild(el);
+                });
+            }
+
+            document.getElementById('breakdown-modal').classList.remove('hidden');
+        }
+
+        function closeBreakdownModal() {
+            document.getElementById('breakdown-modal').classList.add('hidden');
+        }
+
+        // Initialize webpage when DOM triggers
+        window.addEventListener('DOMContentLoaded', () => {
+            initAppDatabase();
+            populateSpecialsDropdownOptions();
+            calculateAndRefresh();
+        });
+    </script>
+</body>
+</html>
