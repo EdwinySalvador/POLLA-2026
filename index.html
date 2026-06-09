@@ -118,27 +118,35 @@
         
         <!-- SIDEBAR - LEADERBOARD (STICKY AT TOP ON MOBILE, COLUMN ON DESKTOP) -->
         <aside class="w-full md:w-80 shrink-0 flex flex-col gap-3 bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl overflow-hidden max-h-[30rem] md:max-h-none">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h2 class="font-bold text-slate-100 flex items-center gap-2">
+            <!-- Header Clickable on Mobile to Toggle Collapse -->
+            <div onclick="toggleLeaderboardMobile()" class="flex items-center justify-between border-b border-slate-800 pb-3 cursor-pointer md:cursor-default select-none">
+                <h2 class="font-bold text-slate-100 flex items-center gap-2 text-xs sm:text-sm">
                     <i class="fa-solid fa-ranking-star text-yellow-400"></i> Posiciones de la Polla
+                    <!-- Visual indicator of collapsibility, only visible on mobile -->
+                    <i id="leaderboard-toggle-icon" class="fa-solid fa-chevron-down text-2xs text-emerald-400 transition-transform duration-300 md:hidden ml-1"></i>
                 </h2>
-                <button onclick="openAddUserModal()" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold transition-all">
-                    <i class="fa-solid fa-plus"></i> Jugador
-                </button>
+                <div class="flex items-center gap-2" onclick="event.stopPropagation()">
+                    <button onclick="openAddUserModal()" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold transition-all">
+                        <i class="fa-solid fa-plus"></i> Jugador
+                    </button>
+                </div>
             </div>
 
-            <div id="leaderboard-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
-                <!-- Loaded dynamically -->
-            </div>
-            
-            <div class="pt-2 border-t border-slate-800 flex flex-col gap-1.5">
-                <button onclick="openSyncModal()" class="w-full bg-slate-950 hover:bg-slate-850 hover:text-white border border-slate-800 text-slate-300 text-2xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all">
-                    <i class="fa-solid fa-arrows-rotate text-emerald-400"></i> Sincronizar con Familia
-                </button>
-            </div>
-            
-            <div class="text-2xs text-slate-500 font-mono text-center pt-1">
-                Puntajes se actualizan en vivo al guardar resultados oficiales
+            <!-- Scrollable content, collapsed by default on mobile (hidden) but always visible on desktop (md:flex) -->
+            <div id="leaderboard-collapsible-wrapper" class="hidden md:flex flex-col flex-1 gap-3 overflow-hidden">
+                <div id="leaderboard-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                    <!-- Loaded dynamically -->
+                </div>
+                
+                <div class="pt-2 border-t border-slate-800 flex flex-col gap-1.55 shrink-0">
+                    <button onclick="openSyncModal()" class="w-full bg-slate-950 hover:bg-slate-850 hover:text-white border border-slate-800 text-slate-300 text-2xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-arrows-rotate text-emerald-400"></i> Sincronizar con Familia
+                    </button>
+                </div>
+                
+                <div class="text-2xs text-slate-500 font-mono text-center pt-1 shrink-0">
+                    Puntajes se actualizan en vivo al guardar resultados oficiales
+                </div>
             </div>
         </aside>
 
@@ -1614,6 +1622,26 @@
             showToast("Pronósticos Simulados cargados con éxito para Antonia, Edwin, etc. 🔮");
         }
 
+        // --- RESPONSIVE SIDEBAR MOBILE CONTROLLER ---
+        let isLeaderboardExpandedMobile = false;
+
+        function toggleLeaderboardMobile() {
+            if (window.innerWidth >= 768) return; // Do nothing on Desktop larger screen
+            
+            const wrapper = document.getElementById('leaderboard-collapsible-wrapper');
+            const icon = document.getElementById('leaderboard-toggle-icon');
+            
+            isLeaderboardExpandedMobile = !isLeaderboardExpandedMobile;
+            
+            if (isLeaderboardExpandedMobile) {
+                wrapper.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                wrapper.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
         // --- SUB MODALS: FAMILY SYNC TOOL (OFFLINE COMPATIBLE) ---
         function openSyncModal() {
             document.getElementById('import-code-area').value = '';
@@ -1846,3 +1874,4 @@
     </script>
 </body>
 </html>
+
