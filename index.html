@@ -48,7 +48,7 @@
         }
     </style>
 </head>
-<body class="h-full flex flex-col font-sans select-none overflow-x-hidden antialiased">
+<body class="h-full flex flex-col font-sans overflow-x-hidden antialiased">
 
     <!-- TOP HEADER -->
     <header class="bg-slate-900 border-b border-slate-800 shrink-0 sticky top-0 z-40 shadow-xl">
@@ -114,7 +114,7 @@
     </section>
 
     <!-- MAIN APP LAYOUT (Sidebar & Pane) -->
-    <main class="flex-1 overflow-hidden flex flex-col md:flex-row max-w-7xl w-full mx-auto p-3 sm:p-4 gap-4">
+    <main class="flex-1 overflow-y-auto md:overflow-hidden flex flex-col md:flex-row max-w-7xl w-full mx-auto p-3 sm:p-4 gap-4">
         
         <!-- SIDEBAR - LEADERBOARD (STICKY AT TOP ON MOBILE, COLUMN ON DESKTOP) -->
         <aside class="w-full md:w-80 shrink-0 flex flex-col gap-3 bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl overflow-hidden max-h-[30rem] md:max-h-none">
@@ -367,6 +367,19 @@
                             <button onclick="resetOfficialScores()" class="bg-red-500/10 hover:bg-red-550/20 text-xs text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 font-medium">
                                 <i class="fa-regular fa-trash-can"></i> Limpiar Oficiales
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- PLAYER SECURITY AND PINS MANAGEMENT -->
+                    <div class="bg-slate-950/20 border border-slate-800/80 p-4 rounded-3xl space-y-3">
+                        <h4 class="font-bold text-xs text-slate-350 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-805">
+                            <i class="fa-solid fa-users-gear text-emerald-400"></i> Control de PINs de Jugadores
+                        </h4>
+                        <p class="text-2xs text-slate-400">
+                            Como administrador, puedes asignar una clave individual a cada jugador para proteger sus pronósticos. El PIN por defecto es <strong class="text-slate-100 font-mono">0000</strong>.
+                        </p>
+                        <div id="admin-pins-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            <!-- Injected dynamically in renderAdmin() -->
                         </div>
                     </div>
 
@@ -682,6 +695,7 @@
         let currentTab = 'fixture';
         let customNewAvatar = '👧';
         let isAdminLoggedIn = false;
+        let unlockedUsersInSession = {}; // Keep track of which players have been unlocked in this session
 
         // Load or initialize static database
         function initAppDatabase() {
@@ -689,13 +703,24 @@
             const storedUsers = localStorage.getItem('polla_users');
             if (storedUsers) {
                 users = JSON.parse(storedUsers);
+                // Ensure all existing users have a default PIN so they don't lock out
+                let updated = false;
+                users.forEach(u => {
+                    if (u.pin === undefined || u.pin === null) {
+                        u.pin = "0000";
+                        updated = true;
+                    }
+                });
+                if (updated) {
+                    saveUsersToStorage();
+                }
             } else {
                 users = [
-                    { id: 1, name: "Antonia", avatar: "👧", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
-                    { id: 2, name: "Salvador", avatar: "👦", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
-                    { id: 3, name: "Graciela", avatar: "👵", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
-                    { id: 4, name: "Papá (Edwin)", avatar: "👨", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
-                    { id: 5, name: "Mamá", avatar: "👩", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" }
+                    { id: 1, name: "Antonia", avatar: "👧", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 2, name: "Salvador", avatar: "👦", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 3, name: "Graciela", avatar: "👵", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 4, name: "Papá (Edwin)", avatar: "👨", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 5, name: "Mamá", avatar: "👩", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" }
                 ];
                 saveUsersToStorage();
             }
@@ -755,8 +780,36 @@
             return predictions[`${userId}_${matchId}`] || { goals1: "", goals2: "" };
         }
 
+        // Security check for updating predictions
+        function checkAndUnlockUser(userId) {
+            if (unlockedUsersInSession[userId]) {
+                return true;
+            }
+            const user = users.find(u => u.id === userId);
+            if (!user) return false;
+            
+            const userPin = user.pin || "0000";
+            const entered = prompt(`🔐 SEGURIDAD: Los pronósticos de ${user.avatar} ${user.name} están protegidos contra cambios accidentales.\n\nPor favor, ingresa el PIN de este jugador para guardar cambios:\n(PIN inicial por defecto: 0000)`);
+            
+            if (entered === null) {
+                return false; // Cancelled
+            }
+            if (entered.trim() === userPin) {
+                unlockedUsersInSession[userId] = true;
+                showToast(`¡Sesión de ${user.name} desbloqueada! 🔓`);
+                return true;
+            } else {
+                alert("❌ PIN Incorrecto. No se guardaron los cambios.");
+                return false;
+            }
+        }
+
         // Save individual prediction
         function savePrediction(matchId, goals1, goals2) {
+            if (!checkAndUnlockUser(activeUserId)) {
+                calculateAndRefresh();
+                return;
+            }
             predictions[`${activeUserId}_${matchId}`] = { goals1: goals1, goals2: goals2 };
             savePredictionsToStorage();
             calculateAndRefresh();
@@ -764,6 +817,10 @@
         }
 
         function saveSpecialPrediction(field, value) {
+            if (!checkAndUnlockUser(activeUserId)) {
+                calculateAndRefresh();
+                return;
+            }
             const userIndex = users.findIndex(u => u.id === activeUserId);
             if (userIndex !== -1) {
                 users[userIndex][field] = value;
@@ -1480,6 +1537,28 @@
                 if (el) el.value = officialSpecials[f] || "";
             });
 
+            // List of Users & PINs for Admin Control
+            const pinsGrid = document.getElementById('admin-pins-grid');
+            if (pinsGrid) {
+                pinsGrid.innerHTML = '';
+                users.forEach(u => {
+                    const userPin = u.pin || "0000";
+                    const pinCard = document.createElement('div');
+                    pinCard.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-2xl flex items-center justify-between gap-2.5 text-xs";
+                    pinCard.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">${u.avatar}</span>
+                            <span class="font-bold text-slate-200">${u.name}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-4xs text-slate-500 font-mono uppercase">PIN:</span>
+                            <input type="text" maxlength="8" value="${userPin}" onchange="updateUserPin(${u.id}, this.value)" class="w-16 bg-slate-950 border border-slate-800 text-center text-xs font-bold text-emerald-400 rounded-lg py-1 focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    `;
+                    pinsGrid.appendChild(pinCard);
+                });
+            }
+
             // List of 72 matches for direct actual result inputs
             const container = document.getElementById('admin-matches-list');
             container.innerHTML = '';
@@ -1536,6 +1615,22 @@
             saveOfficialSpecialsToStorage();
             calculateAndRefresh();
             showToast("Premio Oficial Actualizado 🏅");
+        }
+
+        // Update player security key / PIN code
+        function updateUserPin(userId, newPin) {
+            const cleanPin = newPin.trim();
+            if (!cleanPin) {
+                alert("El PIN no puede estar vacío.");
+                calculateAndRefresh();
+                return;
+            }
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex !== -1) {
+                users[userIndex].pin = cleanPin;
+                saveUsersToStorage();
+                showToast(`PIN de ${users[userIndex].name} actualizado a "${cleanPin}" 🔐`);
+            }
         }
 
         // Wipe database back to default state
@@ -1754,6 +1849,7 @@
                 id: newId,
                 name: name,
                 avatar: customNewAvatar,
+                pin: "0000", // Default pin code
                 predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "",
                 predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: ""
             });
@@ -1874,4 +1970,3 @@
     </script>
 </body>
 </html>
-
