@@ -710,17 +710,22 @@
                         u.pin = "0000";
                         updated = true;
                     }
+                    if (u.name === "Antonia") { u.name = "Anto"; updated = true; }
+                    if (u.name === "Salvador") { u.name = "Salva"; updated = true; }
+                    if (u.name === "Graciela") { u.name = "Sra. Graciela"; updated = true; }
+                    if (u.name === "Mamá") { u.name = "Mamá (Chiquis)"; updated = true; }
+                    if (u.name === "Papá (Eduardo)") { u.name = "Papá (Edwin)"; updated = true; }
                 });
                 if (updated) {
                     saveUsersToStorage();
                 }
             } else {
                 users = [
-                    { id: 1, name: "Antonia", avatar: "👧", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
-                    { id: 2, name: "Salvador", avatar: "👦", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
-                    { id: 3, name: "Graciela", avatar: "👵", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 1, name: "Anto", avatar: "👧", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 2, name: "Salva", avatar: "👦", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
+                    { id: 3, name: "Sra. Graciela", avatar: "👵", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
                     { id: 4, name: "Papá (Edwin)", avatar: "👨", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" },
-                    { id: 5, name: "Mamá", avatar: "👩", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" }
+                    { id: 5, name: "Mamá (Chiquis)", avatar: "👩", pin: "0000", predictedChampion: "", predictedSubchampion: "", predictedThirdPlace: "", predictedGoleador: "", predictedAsistente: "", predictedMvp: "", predictedPortero: "", predictedVallaMenosVencida: "" }
                 ];
                 saveUsersToStorage();
             }
@@ -1557,13 +1562,13 @@
                     const pinCard = document.createElement('div');
                     pinCard.className = "bg-slate-900 border border-slate-800 p-2.5 rounded-2xl flex items-center justify-between gap-2.5 text-xs";
                     pinCard.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="text-base">${u.avatar}</span>
-                            <span class="font-bold text-slate-200">${u.name}</span>
+                        <div class="flex items-center gap-1.5 flex-1">
+                            <span class="text-base leading-none">${u.avatar}</span>
+                            <input type="text" value="${u.name}" onchange="updateUserName(${u.id}, this.value)" class="w-full bg-transparent border-b border-transparent hover:border-slate-850 focus:border-emerald-500 text-slate-200 text-xs font-semibold py-0.5 px-1 outline-none">
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <span class="text-4xs text-slate-500 font-mono uppercase">PIN:</span>
-                            <input type="text" maxlength="8" value="${userPin}" onchange="updateUserPin(${u.id}, this.value)" class="w-16 bg-slate-950 border border-slate-800 text-center text-xs font-bold text-emerald-400 rounded-lg py-1 focus:ring-1 focus:ring-emerald-500 focus:outline-none">
+                            <span class="text-[9px] text-slate-500 font-mono uppercase">PIN:</span>
+                            <input type="text" maxlength="8" value="${userPin}" onchange="updateUserPin(${u.id}, this.value)" class="w-14 bg-slate-950 border border-slate-800 text-center text-xs font-bold text-emerald-400 rounded-lg py-1 focus:ring-1 focus:ring-emerald-500 focus:outline-none">
                         </div>
                     `;
                     pinsGrid.appendChild(pinCard);
@@ -1641,6 +1646,24 @@
                 users[userIndex].pin = cleanPin;
                 saveUsersToStorage();
                 showToast(`PIN de ${users[userIndex].name} actualizado a "${cleanPin}" 🔐`);
+            }
+        }
+
+        // Update player profile name
+        function updateUserName(userId, newName) {
+            const cleanName = newName.trim();
+            if (!cleanName) {
+                alert("El nombre de usuario no puede estar vacío.");
+                calculateAndRefresh();
+                return;
+            }
+            const userIndex = users.findIndex(u => u.id === userId);
+            if (userIndex !== -1) {
+                const oldName = users[userIndex].name;
+                users[userIndex].name = cleanName;
+                saveUsersToStorage();
+                showToast(`Nombre de ${oldName} actualizado a "${cleanName}" 👤`);
+                calculateAndRefresh();
             }
         }
 
