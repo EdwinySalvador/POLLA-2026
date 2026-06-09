@@ -789,7 +789,7 @@
             if (!user) return false;
             
             const userPin = user.pin || "0000";
-            const entered = prompt(`🔐 SEGURIDAD: Los pronósticos de ${user.avatar} ${user.name} están protegidos contra cambios accidentales.\n\nPor favor, ingresa el PIN de este jugador para guardar cambios:\n(PIN inicial por defecto: 0000)`);
+            const entered = prompt(`🔐 SEGURIDAD: Los pronósticos de ${user.avatar} ${user.name} están protegidos contra cambios accidentales.\n\nPor favor, ingresa el PIN de este jugador para acceder o realizar cambios:\n(PIN inicial por defecto: 0000)`);
             
             if (entered === null) {
                 return false; // Cancelled
@@ -799,7 +799,7 @@
                 showToast(`¡Sesión de ${user.name} desbloqueada! 🔓`);
                 return true;
             } else {
-                alert("❌ PIN Incorrecto. No se guardaron los cambios.");
+                alert("❌ PIN Incorrecto. Acceso denegado.");
                 return false;
             }
         }
@@ -888,7 +888,18 @@
 
         // Active User switched
         function switchActiveUser(userId) {
-            activeUserId = parseInt(userId);
+            const targetUserId = parseInt(userId);
+            if (targetUserId === activeUserId) return; // No change needed
+
+            // Check if user is already unlocked or if we can unlock them
+            if (!checkAndUnlockUser(targetUserId)) {
+                // If failed, revert the dropdown value to the previous activeUserId
+                document.getElementById('user-select').value = activeUserId;
+                return;
+            }
+
+            // If successfully unlocked/verified:
+            activeUserId = targetUserId;
             localStorage.setItem('polla_active_user_id', activeUserId);
             const user = users.find(u => u.id === activeUserId);
             if (user) {
