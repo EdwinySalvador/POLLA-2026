@@ -937,16 +937,30 @@
                     const predOutcome = Math.sign(prG1 - prG2);
 
                     let pts = 0;
-                    let desc = "Incorrecto";
+                    let bits = [];
                     if (prG1 === offG1 && prG2 === offG2) {
-                        pts = 5;
+                        pts = 6;
                         exactMatches++;
                         correctOutcomes++;
-                        desc = "Exacto (+5 pts) 🔥";
-                    } else if (actualOutcome === predOutcome) {
-                        pts = 3;
-                        correctOutcomes++;
-                        desc = "Resultado (+3 pts) ⚽";
+                        bits.push("Exacto (+6)");
+                    } else {
+                        if (actualOutcome === predOutcome) {
+                            pts += 3;
+                            correctOutcomes++;
+                            bits.push("Resultado (+3)");
+                            if ((offG1 - offG2) === (prG1 - prG2)) {
+                                pts += 2;
+                                bits.push("Dif. Goles (+2)");
+                            }
+                        }
+                        if (prG1 === offG1) {
+                            pts += 2;
+                            bits.push("Goles L (+2)");
+                        }
+                        if (prG2 === offG2) {
+                            pts += 2;
+                            bits.push("Goles V (+2)");
+                        }
                     }
 
                     matchPoints += pts;
@@ -956,7 +970,7 @@
                         predicted: `${prG1}-${prG2}`,
                         actual: `${offG1}-${offG2}`,
                         pts: pts,
-                        desc: desc,
+                        desc: bits.length > 0 ? bits.join(" • ") + " = " + pts + " pts" : "Incorrecto",
                         groupCode: m.groupCode,
                         stadium: m.stadium,
                         time: m.time
@@ -972,21 +986,23 @@
                 let mvpPoints = 0;
                 let porteroPoints = 0;
                 let vallaMenosVencidaPoints = 0;
+                let jovenPoints = 0;
 
                 const tr = (str) => (str || "").trim().toLowerCase();
 
                 if (officialSpecials) {
-                    if (tr(officialSpecials.champion) && tr(officialSpecials.champion) === tr(user.predictedChampion)) championPoints = 10;
+                    if (tr(officialSpecials.champion) && tr(officialSpecials.champion) === tr(user.predictedChampion)) championPoints = 15;
                     if (tr(officialSpecials.subchampion) && tr(officialSpecials.subchampion) === tr(user.predictedSubchampion)) subchampionPoints = 10;
-                    if (tr(officialSpecials.thirdPlace) && tr(officialSpecials.thirdPlace) === tr(user.predictedThirdPlace)) thirdPlacePoints = 10;
+                    if (tr(officialSpecials.thirdPlace) && tr(officialSpecials.thirdPlace) === tr(user.predictedThirdPlace)) thirdPlacePoints = 8;
                     if (tr(officialSpecials.goleador) && tr(officialSpecials.goleador) === tr(user.predictedGoleador)) goleadorPoints = 10;
                     if (tr(officialSpecials.asistente) && tr(officialSpecials.asistente) === tr(user.predictedAsistente)) asistentePoints = 10;
-                    if (tr(officialSpecials.mvp) && tr(officialSpecials.mvp) === tr(user.predictedMvp)) mvpPoints = 10;
+                    if (tr(officialSpecials.mvp) && tr(officialSpecials.mvp) === tr(user.predictedMvp)) mvpPoints = 12;
                     if (tr(officialSpecials.portero) && tr(officialSpecials.portero) === tr(user.predictedPortero)) porteroPoints = 10;
-                    if (tr(officialSpecials.vallaMenosVencida) && tr(officialSpecials.vallaMenosVencida) === tr(user.predictedVallaMenosVencida)) vallaMenosVencidaPoints = 10;
+                    if (tr(officialSpecials.vallaMenosVencida) && tr(officialSpecials.vallaMenosVencida) === tr(user.predictedVallaMenosVencida)) vallaMenosVencidaPoints = 8;
+                    if (tr(officialSpecials.joven) && tr(officialSpecials.joven) === tr(user.predictedJoven)) jovenPoints = 8;
                 }
 
-                const specialPoints = championPoints + subchampionPoints + thirdPlacePoints + goleadorPoints + asistentePoints + mvpPoints + porteroPoints + vallaMenosVencidaPoints;
+                const specialPoints = championPoints + subchampionPoints + thirdPlacePoints + goleadorPoints + asistentePoints + mvpPoints + porteroPoints + vallaMenosVencidaPoints + jovenPoints;
                 const totalPoints = matchPoints + specialPoints;
 
                 return {
@@ -1005,7 +1021,8 @@
                         asistente: { player: user.predictedAsistente, off: officialSpecials.asistente, pts: asistentePoints },
                         mvp: { player: user.predictedMvp, off: officialSpecials.mvp, pts: mvpPoints },
                         portero: { player: user.predictedPortero, off: officialSpecials.portero, pts: porteroPoints },
-                        vallaMenosVencida: { player: user.predictedVallaMenosVencida, off: officialSpecials.vallaMenosVencida, pts: vallaMenosVencidaPoints }
+                        vallaMenosVencida: { player: user.predictedVallaMenosVencida, off: officialSpecials.vallaMenosVencida, pts: vallaMenosVencidaPoints },
+                        joven: { player: user.predictedJoven || "", off: officialSpecials.joven, pts: jovenPoints }
                     }
                 };
             });

@@ -1,0 +1,54 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Subtle Drop Shadow of the Soccer Ball -->
+    <path
+        android:fillColor="#3D000000"
+        android:pathData="M54,84c16.57,0 30,-13.43 30,-30s-13.43,-30 -30,-30s-30,13.43 -30,30s13.43,30 30,30z"
+        android:strokeWidth="1"/>
+
+    <!-- Soccer Ball Base Outer Body (Bright White/Silver) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,81c14.91,0 27,-12.09 27,-27S68.91,27 54,27S27,39.09 27,54S39.09,81 54,81z"
+        android:strokeColor="#1B8A5A"
+        android:strokeWidth="2"/>
+
+    <!-- Central Pentagon (Dark Turf Slate) -->
+    <path
+        android:fillColor="#19221D"
+        android:pathData="M54,44 L62,50 L59,59 L49,59 L46,50 Z" />
+
+    <!-- Radiating Lines & Outer pentagon panels to create Classic Soccer Ball structure -->
+    <path
+        android:strokeColor="#19221D"
+        android:strokeWidth="1.5"
+        android:pathData="
+            M54,44 L54,27
+            M62,50 L78,41
+            M59,59 L71,73
+            M49,59 L37,73
+            M46,50 L30,41
+        " />
+
+    <path
+        android:strokeColor="#19221D"
+        android:strokeWidth="1.5"
+        android:pathData="
+            M40,32 L46,28
+            M68,32 L62,28
+            M79,53 L75,61
+            M29,53 L33,61
+            M54,77 L62,81
+            M54,77 L46,81
+        " />
+
+    <!-- Decorative Mini Star to represent World Cup glory! -->
+    <path
+        android:fillColor="#FFFFD700"
+        android:pathData="M54,14 L56.5,19 L62,19.5 L58,23.5 L59.5,29 L54,26 L48.5,29 L50,23.5 L46,19.5 L51.5,19 Z" />
+
+</vector>
